@@ -48,9 +48,6 @@ public class CreateNetwork
 		
 		//	Create the Jerusalem MATSim Network
 		Network jlmNet = createMATSimNet(nodesMap, linksMap);
-		
-		//	Create output folder if necessary
-		Path outputFolder = Files.createDirectories(Paths.get("output"));
 
 		//	Write network
 		new NetworkWriter(jlmNet).write(OUTPUT_NETWORK_FOLDER+"network_2015.xml");
@@ -58,7 +55,7 @@ public class CreateNetwork
 	
 
 	/**
-	 * Reads "nodes.csv" and write the nodes into a TreeMap<String, Coord>.
+	 * Reads "nodes.csv" and write the nodes into a TreeMap "String, Coord".
 	 * <p>
 	 *  CSV fields:
 	 * <li>
@@ -69,8 +66,8 @@ public class CreateNetwork
 	 *  [3] = "y" (double)
 	 *  <br>
 	 *	<br>
-	 *	@param inputNodesCSV absolute URL for "nodes.csv".         
-	 *	@return Map <String, Coord>
+	 *	@param inputNodesCSV absolute path for "nodes.csv".         
+	 *	@return Map of "String, Coord"
 	 */
 	private static Map<String, Coord> readNodesCSV(String inputNodesCSV)
 	{
@@ -84,20 +81,20 @@ public class CreateNetwork
 		try
 		{
 			br = new BufferedReader(new FileReader(inputNodesCSV));
-			// skip first line (header)
+			
+			//	skip first line (header)
 			line = br.readLine();
+			
 			while ((line = br.readLine()) != null)
 			{
-
-				// use comma as separator
+				//	use comma as separator
 				String[] lineArr = line.split(cvsSplitBy);
 				String nodeId = lineArr[0];
 				double nodeX = Double.parseDouble(lineArr[2]);
 				double nodeY = Double.parseDouble(lineArr[3]);
 
-				// write nodes to map Map<String, Coord>
+				//	write nodes to map Map<String, Coord>
 				nodesMap.put(nodeId, new Coord(nodeX, nodeY));
-
 			}
 		}
 		catch (FileNotFoundException e)
@@ -122,11 +119,10 @@ public class CreateNetwork
 		return nodesMap;
 	}
 	
-	
 	/**
-	 * Reads "links.csv" and write the links into a TreeMap<String, ArrayList>
+	 * Reads "links.csv" and write the links into a TreeMap "String, ArrayList"
 	 * <p>
-	 * CSV fields = [i,j,length_met,mode,num_lanes,type,=@at,=@linkcap,s0link_m_per_s
+	 * CSV fields = [i,j,length_met,mode,num_lanes,type,at,linkcap,s0link_m_per_s
 	 * <li>
 	 *  [0] = "i" (int) - id of <b>from</b> node.
 	 *	<li>
@@ -158,15 +154,15 @@ public class CreateNetwork
 	 *		<li>66 = Busway
 	 *		<li>77 = Rail</ul>
 	 *  <li>
-	 *  [6] "=@at" - not important
+	 *  [6] "at" - not important
 	 *  <li>
-	 *  [7] "=@linkcap" (double) - link <b>capacity</b>.
+	 *  [7] "linkcap" (double) - link <b>capacity</b>.
 	 *  <li>
-	 *  [8] "=s0link_m_per_s" - <b>freespeed</b> of links (m/s) from EMME simulation (no congestion)
+	 *  [8] "s0link_m_per_s" - <b>freespeed</b> of links (m/s) from EMME simulation (no congestion)
 	 *  <br>
 	 *	<br>
-	 * @param inputLinksCSV an absolute URL giving "links.csv"
-	 * @return Map <String, ArrayList<JerusalemLink>>
+	 * @param inputLinksCSV an absolute path for "links.csv"
+	 * @return Map "String, ArrayList<JerusalemLink"
 	 */
 	private static Map<String, ArrayList<JerusalemLink>> readLinksCSV(String inputLinksCSV)
 	{
@@ -185,7 +181,7 @@ public class CreateNetwork
 			line = br.readLine();
 			
 			while ((line = br.readLine()) != null)
-			{
+				{
 				ArrayList<JerusalemLink> linkArr = new ArrayList<JerusalemLink>();
 				
 				// use comma as separator
@@ -200,7 +196,6 @@ public class CreateNetwork
 				String id = jerusalemLink.getFromId()+"_"+jerusalemLink.getToId()+"_"+jerusalemLink.getRoadType();
 				
 				LinksMap.put(id, linkArr);
-
 				}
 		}
 		catch (FileNotFoundException e)
@@ -228,10 +223,10 @@ public class CreateNetwork
 
 	
 	/**
-	 * Creates a MATSim network from nodes - "Map<String, Coord>" and from links - Map<String, ArrayList<JerusalemLink>>
-	 *	@param Map<String, Coord> <b>nodes</b>
-	 *@param Map<String, ArrayList> <b>links</b>
-	 *	@return MATSim network <String, Coord>
+	 * Creates a MATSim network from nodesMap - "String, Coord" and from linksMap "String, ArrayList(JerusalemLink)"
+	 *	@param nodesMap "String, Coord"
+	 *	@param linksMap "String, ArrayList(JerusalemLink)"
+	 *	@return MATSim network 
 	 */
 	private static Network createMATSimNet(Map<String, Coord> nodesMap,Map<String, ArrayList<JerusalemLink>> linksMap )
 	{
@@ -242,7 +237,8 @@ public class CreateNetwork
 		
 		log.info("creating MATSim nodes") ;
 
-		for (Map.Entry<String,Coord> entry : nodesMap.entrySet()) {
+		for (Map.Entry<String,Coord> entry : nodesMap.entrySet()) 
+		{
 		    String nodeId = entry.getKey();
 		    Coord nodeCoord = entry.getValue();
 			Node node = fac.createNode(Id.createNodeId(nodeId),nodeCoord);
@@ -251,16 +247,17 @@ public class CreateNetwork
 		
 		log.info("creating MATSim links") ;
 		
-		//iterate through link IDs
-		for (Map.Entry<String,ArrayList<JerusalemLink>> entry : linksMap.entrySet()) {
+		//	iterate through link IDs
+		for (Map.Entry<String,ArrayList<JerusalemLink>> entry : linksMap.entrySet()) 
+		{
 		    String linkId = entry.getKey();
 		    ArrayList<JerusalemLink> linkArr = entry.getValue();
 		    Link link = null;
 		    
-		    //iterate through link attributes
+		    //	iterate through link attributes
 		    for (JerusalemLink jerusalemLink : linkArr)
 			{
-		    	//create node ID object to get read from the network
+		    	//	create node ID object to get read from the network
 		    	Id<Node> fromID = Id.createNodeId(jerusalemLink.getFromId());
 		    	Id<Node> toID = Id.createNodeId(jerusalemLink.getToId());
 		    	
@@ -271,16 +268,25 @@ public class CreateNetwork
 			    double travelTime = jerusalemLink.getLength() / jerusalemLink.getFreeSpeed();
 				setLinkAttributes(link, jerusalemLink.getCapacity(), jerusalemLink.getLength(), travelTime, jerusalemLink.getMode());
 			}
-
 			net.addLink(link);		    
 		}
 		return net;
 		
 	}
 	
-	private static void setLinkAttributes(Link link, double capacity, double length, double travelTime, Set<String> modes) {
+	/**
+	 * 	set a MATSim link with attributes
+	 *	@param link			a MATSim link
+	 *	@param capacity		hourly capacity of link
+	 *	@param length		meters
+	 *	@param travelTime	on link 
+	 *	@param modes		a set of allowed modes
+	 */
+	private static void setLinkAttributes(Link link, double capacity, double length, double travelTime, Set<String> modes)
+	{
 		link.setCapacity(capacity);
 		link.setLength(length);
+		
 		// agents have to reach the end of the link before the time step ends to
 		// be able to travel forward in the next time step (matsim time step logic)
 		link.setFreespeed(link.getLength() / (travelTime - 0.1));

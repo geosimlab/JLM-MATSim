@@ -45,7 +45,7 @@ public class JerusalemLink
 			this.freeSpeed = Double.parseDouble(lineArr[9]);
 		}
 		
-		//	case 2 modes
+		//	case 3 modes
 		if(lineArr.length == 11) {
 			String unparsedMode = lineArr[3]+","+lineArr[4]+","+lineArr[5];
 			this.mode = parseMode(unparsedMode);
@@ -144,8 +144,8 @@ public class JerusalemLink
 	 *  <li>
 	 	<br>
 	 *	<br>
-	 * @param Mode from an unparsed String"
-	 * @return set <String>
+	 * @param mode from an unparsed String"
+	 * @return set of modes for a link
 	 **/
 	public static Set <String> parseMode(String mode){
 		
