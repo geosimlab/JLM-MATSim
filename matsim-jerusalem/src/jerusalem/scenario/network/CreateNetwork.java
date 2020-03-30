@@ -49,10 +49,10 @@ public class CreateNetwork
 		//	Create the Jerusalem MATSim Network
 		Network jlmNet = createMATSimNet(nodesMap, linksMap);
 		
-		// Create output folder if necessary
+		//	Create output folder if necessary
 		Path outputFolder = Files.createDirectories(Paths.get("output"));
 
-		// Write network
+		//	Write network
 		new NetworkWriter(jlmNet).write(OUTPUT_NETWORK_FOLDER+"network_2015.xml");
 	}
 	
