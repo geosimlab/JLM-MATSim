@@ -1,6 +1,7 @@
 package jerusalem.scenario.population;
 
 public class PopUtils {
+
 //	based on JTMT-3C ABM Main Output File Structure
 	/**
 	 * Returns description of activity type from integer, according to the JTMT-3C
@@ -9,9 +10,9 @@ public class PopUtils {
 	 * @param int <b>i</b>
 	 * @return String actResult
 	 */
-	public static String ActivityType(int i) {
+	public static String ActivityType(int activity) {
 		String actResult = null;
-		switch (i) {
+		switch (activity) {
 		case 0:// 0. Home
 			actResult = "home";
 			break;
@@ -87,7 +88,6 @@ public class PopUtils {
 		default:
 			modeResult = "other";
 			break;
-
 		}
 		return modeResult;
 	}
