@@ -42,6 +42,7 @@ public class PopCreator {
 		BufferedReader br = null;
 		String query = "";
 		String line = "";
+		//
 		try {
 			br = new BufferedReader(new FileReader("./sql_scripts/pop_query.sql"));
 
