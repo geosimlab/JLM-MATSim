@@ -250,7 +250,7 @@ public class CreateNetwork
 	 */
 	private static Network createMATSimNet(Map<String, Coord> nodesMap,Map<String, ArrayList<JerusalemLink>> linksMap )
 	{
-		log.info("creating a MATSim network") ;
+		log.info("creating a MATSim network");
 
 		Network net = NetworkUtils.createNetwork();
 		NetworkFactory fac = net.getFactory();
