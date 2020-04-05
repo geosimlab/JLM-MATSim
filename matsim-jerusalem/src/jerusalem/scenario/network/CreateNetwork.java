@@ -168,8 +168,8 @@ public class CreateNetwork
 	 */
 	private static Map<String, ArrayList<JerusalemLink>> readLinksCSV(String inputLinksCSV, boolean isConnector)
 	{
-		log.info("Reading links.csv") ;
-
+		log.info("Reading links.csv");
+		
 		Map<String, ArrayList<JerusalemLink>> LinksMap = new TreeMap();
 		BufferedReader br = null;
 		String line = "";
@@ -194,8 +194,6 @@ public class CreateNetwork
 				
 				//	remove connectors - road type 9
 				if(isConnector == true) {
-					log.info("Removing connectors from JLM network") ;
-
 					if(!(jerusalemLink.getRoadType()==9)) {
 						//	add link elements to arrLink
 						linkArr.add(jerusalemLink);
