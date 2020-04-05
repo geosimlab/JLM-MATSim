@@ -36,6 +36,7 @@ public class CreateNetwork
 	private final static String INPUT_LINKS_CSV = "E:\\Golan\\Jerusalem MATSim\\Data recieved\\Current State\\network_pt\\2015\\links.csv";
 	private final static String INPUT_NODES_CSV = "E:\\Golan\\Jerusalem MATSim\\Data recieved\\Current State\\network_pt\\2015\\nodes.csv";
 	private final static String OUTPUT_NETWORK_FOLDER = "E:\\Golan\\Jerusalem MATSim\\MATSim Input\\";
+	private final static boolean REMOVE_CONNECTOR = true;
 
 
 	public static void main(String[] args) throws IOException
@@ -44,7 +45,7 @@ public class CreateNetwork
 		Map<String, Coord> nodesMap = readNodesCSV(INPUT_NODES_CSV);
 		
 		//	Read links.csv
-		Map<String, ArrayList<JerusalemLink>> linksMap = readLinksCSV(INPUT_LINKS_CSV);
+		Map<String, ArrayList<JerusalemLink>> linksMap = readLinksCSV(INPUT_LINKS_CSV, REMOVE_CONNECTOR);
 		
 		//	Create the Jerusalem MATSim Network
 		Network jlmNet = createMATSimNet(nodesMap, linksMap);
@@ -162,9 +163,10 @@ public class CreateNetwork
 	 *  <br>
 	 *	<br>
 	 * @param inputLinksCSV an absolute path for "links.csv"
+	 * @param isConnector remove connectors if true
 	 * @return Map "String, ArrayList<JerusalemLink"
 	 */
-	private static Map<String, ArrayList<JerusalemLink>> readLinksCSV(String inputLinksCSV)
+	private static Map<String, ArrayList<JerusalemLink>> readLinksCSV(String inputLinksCSV, boolean isConnector)
 	{
 		log.info("Reading links.csv") ;
 
@@ -183,19 +185,37 @@ public class CreateNetwork
 			while ((line = br.readLine()) != null)
 				{
 				ArrayList<JerusalemLink> linkArr = new ArrayList<JerusalemLink>();
+				String id ="";
 				
 				// use comma as separator
 				String[] lineArr = line.split(cvsSplitBy);
 				
-				JerusalemLink jerusalemLink = new JerusalemLink(lineArr);			
+				JerusalemLink jerusalemLink = new JerusalemLink(lineArr);
+				
+				//	remove connectors - road type 9
+				if(isConnector == true) {
+					log.info("Removing connectors from JLM network") ;
 
-				//add link elements to arrLink
-				linkArr.add(jerusalemLink);
-				
-				//create id of link [fromId_toId_roadType]
-				String id = jerusalemLink.getFromId()+"_"+jerusalemLink.getToId()+"_"+jerusalemLink.getRoadType();
-				
-				LinksMap.put(id, linkArr);
+					if(!(jerusalemLink.getRoadType()==9)) {
+						//	add link elements to arrLink
+						linkArr.add(jerusalemLink);
+						
+						//	create id of link [fromId_toId_roadType]
+						id = jerusalemLink.getFromId()+"_"+jerusalemLink.getToId()+"_"+jerusalemLink.getRoadType();
+						LinksMap.put(id, linkArr);
+					}
+				}
+				//	create all links
+				else {
+						log.info("add all links to JLM network") ;
+						//	add link elements to arrLink
+						linkArr.add(jerusalemLink);
+			
+						//	create id of link [fromId_toId_roadType]
+						id = jerusalemLink.getFromId()+"_"+jerusalemLink.getToId()+"_"+jerusalemLink.getRoadType();
+						LinksMap.put(id, linkArr);
+
+				}
 				}
 		}
 		catch (FileNotFoundException e)
@@ -271,7 +291,6 @@ public class CreateNetwork
 			net.addLink(link);		    
 		}
 		return net;
-		
 	}
 	
 	/**
