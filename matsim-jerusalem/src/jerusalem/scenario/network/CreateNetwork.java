@@ -170,6 +170,8 @@ public class CreateNetwork
 	{
 		log.info("Reading links.csv");
 		
+		//test commit
+		
 		Map<String, ArrayList<JerusalemLink>> LinksMap = new TreeMap();
 		BufferedReader br = null;
 		String line = "";
