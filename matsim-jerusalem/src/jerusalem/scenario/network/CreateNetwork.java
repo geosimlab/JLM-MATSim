@@ -255,7 +255,7 @@ public class CreateNetwork
 		Network net = NetworkUtils.createNetwork();
 		NetworkFactory fac = net.getFactory();
 		
-		log.info("creating MATSim nodes") ;
+		log.info("creating MATSim nodes");
 
 		for (Map.Entry<String,Coord> entry : nodesMap.entrySet()) 
 		{
