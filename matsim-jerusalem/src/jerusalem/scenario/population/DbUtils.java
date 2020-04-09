@@ -11,7 +11,17 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * @author Ido Klein
+ */
+
 public class DbUtils {
+	/**
+	 * Returns properties of DB and files paths from .properties file
+	 * 
+	 * @param String <b>path</b>
+	 * @return Properties props
+	 */
 	public static Properties readProperties(String path) {
 
 		Properties props = new Properties();
@@ -28,6 +38,12 @@ public class DbUtils {
 		return props;
 	}
 
+	/**
+	 * Runs psql commands on local machine. psql should be installed and configured
+	 * on local machine. Commands require valid psql syntax.
+	 * 
+	 * @param String <b>commands</b>
+	 */
 	public static void runCommand(String commands) throws IOException {
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec(commands);

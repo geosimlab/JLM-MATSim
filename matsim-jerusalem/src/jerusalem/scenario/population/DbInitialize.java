@@ -8,6 +8,7 @@ import java.util.Properties;
  */
 
 public class DbInitialize {
+	// getting parameters for commands
 	private static String path = "src/database.properties";
 	private static Properties props = DbUtils.readProperties(path);
 	private static String username = props.getProperty("db.username");
@@ -17,22 +18,23 @@ public class DbInitialize {
 	private static String db_name = props.getProperty("db.db_name");
 	private static String trip_path = props.getProperty("db.trip_path");
 	private static String taz_path = props.getProperty("db.taz_paths");
-	private static String end = username + ":" + password + "@" + url + ":" + port + "/" + db_name;
-	private static String sqlCommand = "psql -c \"\\i ./sql_scripts/load_csv.sql\" postgresql://" + end;
+	// helper for psql commands - the end of a lot of commands is similar
+	private static String helperCommandEnd = username + ":" + password + "@" + url + ":" + port + "/" + db_name;
+	// psql command: refering to sql files (/sql_scirpts/load_csv) that creates the
+	// db tables)
+	private static String sqlCommand = "psql -c \"\\i ./sql_scripts/load_csv.sql\" postgresql://" + helperCommandEnd;
+	// psql command: copying the trips csv into db
 	private static String copyTrips = "psql -c \"\\copy trips FROM '" + trip_path
-			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + end;
+			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+	// psql command: copying the TAZ_coordinated csv into db
 	private static String copyTAZ = "psql -c \"\\copy TAZ_coordinates FROM '" + taz_path
-			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + end;
+			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
 
 	public static void main(String[] args) throws IOException {
+		// running psql commands
 		DbUtils.runCommand(sqlCommand);
 		DbUtils.runCommand(copyTrips);
 		DbUtils.runCommand(copyTAZ);
-//		DbUtils.runCommand("psql -c \"\\i ./sql_scripts/load_csv.sql\" postgresql://postgres:matsim@localhost:5432/postgres");
-//		DbUtils.runCommand(
-//				"psql -c \"\\copy trips FROM 'D:/Users/User/Dropbox/matsim_begin/TripList.csv' DELIMITER ',' CSV HEADER;\" postgresql://postgres:matsim@localhost:5432/postgres");
-//		DbUtils.runCommand(
-//				"psql -c \"\\copy TAZ_coordinates FROM 'D:/Users/User/Dropbox/matsim_begin/TAZ_coordinates.csv' DELIMITER ',' CSV HEADER;\" postgresql://postgres:matsim@localhost:5432/postgres");
 	}
 
 }

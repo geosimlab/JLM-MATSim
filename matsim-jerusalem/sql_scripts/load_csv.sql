@@ -42,7 +42,3 @@ CREATE TABLE IF NOT EXISTS TAZ_coordinates(
 	Y real NOT NULL,
 	taz INT NOT NULL CHECK (taz > 0)
 );
- 
-
- 
- 

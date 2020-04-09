@@ -9,9 +9,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Properties;
 
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -22,50 +22,33 @@ import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.api.core.v01.population.PopulationWriter;
-import org.matsim.core.api.internal.MatsimWriter;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
+
+import jerusalem.scenario.network.CreateNetwork;
 
 /**
  * @author Ido Klein
  */
 public class PopCreator {
 
-	private final static String INPUT_POPULATION_CSV = "D:/Users/User/Dropbox/matsim_begin/population.xml";
+	private final static String OUTPUT_POPULATION_CSV = "D:/Users/User/Dropbox/matsim_begin/population.xml";
+	private static final Logger log = Logger.getLogger(CreateNetwork.class);
+	private static final String path = "src/database.properties";
+	private static final Properties props = DbUtils.readProperties(path);
+	private static final String user = props.getProperty("db.username");
+	private static final String password = props.getProperty("db.password");
+	private static final String db_url = props.getProperty("db.url");
+	private static final String port = props.getProperty("db.port");
+	private static final String db_name = props.getProperty("db.db_name");
+	private static final String url = "jdbc:postgresql://" + db_url + ":" + port + "/" + db_name;
+	private static final String pathQuery = "./sql_scripts/pop_query.sql";
 
 	public static void main(String[] args) {
-//		TODO create local database through java
-		String url = "jdbc:postgresql://localhost:5432/postgres";
-		String user = "postgres";
-		String password = "matsim";
-		BufferedReader br = null;
-		String query = "";
-		String line = "";
-		
-		try {
-			br = new BufferedReader(new FileReader("./sql_scripts/pop_query.sql"));
+		// read pop_query.sql
+		String query = readQueryFile(pathQuery);
 
-			while ((line = br.readLine()) != null) {
-				query = query + line;
-			}
-
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			if (br != null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		System.out.println(query);
 		try (Connection con = DriverManager.getConnection(url, user, password);
 				PreparedStatement pst = con.prepareStatement(query);
 				ResultSet resultSet = pst.executeQuery()) {
@@ -113,14 +96,42 @@ public class PopCreator {
 				i++;
 			}
 
-			// writing to file
-			MatsimWriter popWriter = new PopulationWriter(population, network);
-			popWriter.write(INPUT_POPULATION_CSV);
+			// writing population
+			new PopulationWriter(population, network).write(OUTPUT_POPULATION_CSV);
 
 		} catch (SQLException ex) {
-
-			Logger lgr = Logger.getLogger(PopCreator.class.getName());
-			lgr.log(Level.SEVERE, ex.getMessage(), ex);
+			ex.printStackTrace();
 		}
+	}
+
+	public static String readQueryFile(String path) {
+		log.info("reading load_csv.sql");
+		BufferedReader br = null;
+		String query = "";
+		String line = "";
+
+		try {
+			br = new BufferedReader(new FileReader(path));
+
+			while ((line = br.readLine()) != null) {
+				System.out.println(line);
+				query = query + line;
+			}
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return query;
 	}
 }

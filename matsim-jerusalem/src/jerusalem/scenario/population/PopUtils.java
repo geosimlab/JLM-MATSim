@@ -1,5 +1,8 @@
 package jerusalem.scenario.population;
 
+/**
+ * @author Ido Klein
+ */
 public class PopUtils {
 
 //	based on JTMT-3C ABM Main Output File Structure
