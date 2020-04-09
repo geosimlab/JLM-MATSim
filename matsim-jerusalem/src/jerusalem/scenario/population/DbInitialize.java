@@ -3,6 +3,10 @@ package jerusalem.scenario.population;
 import java.io.IOException;
 import java.util.Properties;
 
+/**
+ * @author Ido Klein
+ */
+
 public class DbInitialize {
 	private static String path = "src/database.properties";
 	private static Properties props = DbUtils.readProperties(path);
