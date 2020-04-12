@@ -9,8 +9,8 @@ import java.util.Properties;
 
 public class DbInitialize {
 
-	// getting parameters for commands
-	private static String path = "src/database.properties";
+	// 	getting parameters for commands
+	private static String path = "database.properties";
 	private static Properties props = DbUtils.readProperties(path);
 	private static String username = props.getProperty("db.username");
 	private static String password = props.getProperty("db.password");
