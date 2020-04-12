@@ -39,7 +39,7 @@ public class PopCreator {
 	private static final String db_url = props.getProperty("db.url");
 	private static final String port = props.getProperty("db.port");
 	private static final String db_name = props.getProperty("db.db_name");
-	private static final String OUTPUT_POPULATION_XML = props.getProperty("db.output_population_xml_path");// "D:/Users/User/Dropbox/matsim_begin/population.xml";
+	private static final String OUTPUT_POPULATION_XML = props.getProperty("db.output_population_xml_path");
 	private static final String url = "jdbc:postgresql://" + db_url + ":" + port + "/" + db_name + "?loggerLevel=DEBUG";
 	private static final String pathQuery = "./sql_scripts/pop_query.sql";
 	private static Scenario sc;
@@ -49,12 +49,16 @@ public class PopCreator {
 	private static Plan plan;
 
 	public static void main(String[] args) {
+
 		// initial setup
 		initialPopulationSetup();
+
 		// read pop_query.sql
 		String query = readQueryFile(pathQuery);
+
 		// read population from database
 		readPopulation(query);
+
 		// write population
 		new PopulationWriter(sc.getPopulation(), sc.getNetwork()).write(OUTPUT_POPULATION_XML);
 	}
@@ -112,8 +116,9 @@ public class PopCreator {
 			int i = 0;
 			while (resultSet.next()) {
 
-				// creating a new person if one started
-				boolean firstTrip = resultSet.getInt("personTripNum") == 1;
+				// creating a new person if one started. 1 is for a person with at least one
+				// trip, 0 is for a person that stays home
+				boolean firstTrip = resultSet.getInt("personTripNum") == 1 | resultSet.getInt("personTripNum") == 0;
 				if (firstTrip) {
 					createAgent(resultSet);
 				}
@@ -159,25 +164,35 @@ public class PopCreator {
 	 * @throws SQLException
 	 */
 	public static void addActivityAndLeg(ResultSet resultSet) throws SQLException {
-		// getting parameters from table
-		Coord origCoordinates = new Coord(resultSet.getDouble("origX"), resultSet.getDouble("origY"));
-		String actType = PopUtils.ActivityType(resultSet.getInt("origPurp"));
-		double endTime = resultSet.getDouble("finalDepartMinute") * 60 + 10800;
-		String mode = PopUtils.Mode(resultSet.getInt("modeCode"));
 
-		// adding activity and leg
-		Activity activity = populationFactory.createActivityFromCoord(actType, origCoordinates);
-		activity.setEndTime(endTime);
-		plan.addActivity(activity);
-		plan.addLeg(populationFactory.createLeg(mode));
-
-		// last activity - adding destination activity and adding person to population
-		if (resultSet.getInt("personTripNum") == resultSet.getInt("lastTripNum")) {
-			Coord destCoordinates = new Coord(resultSet.getDouble("destX"), resultSet.getDouble("destY"));
-			actType = PopUtils.ActivityType(resultSet.getInt("destPurp"));
-			activity = populationFactory.createActivityFromCoord(actType, destCoordinates);
+		// when agent only stays at home
+		if (resultSet.getInt("personTripNum") == 0) {
+			Coord origCoordinates = new Coord(resultSet.getDouble("homeX"), resultSet.getDouble("homeY"));
+			String actType = PopUtils.ActivityType(0);// code for home
+			Activity activity = populationFactory.createActivityFromCoord(actType, origCoordinates);
 			plan.addActivity(activity);
 			person.addPlan(plan);
+		} else {
+			Coord origCoordinates = new Coord(resultSet.getDouble("origX"), resultSet.getDouble("origY"));
+			String actType = PopUtils.ActivityType(resultSet.getInt("origPurp"));
+			double endTime = resultSet.getDouble("finalDepartMinute") * 60 + 10800;
+			String mode = PopUtils.Mode(resultSet.getInt("modeCode"));
+
+			// adding activity and leg
+			Activity activity = populationFactory.createActivityFromCoord(actType, origCoordinates);
+			activity.setEndTime(endTime);
+			plan.addActivity(activity);
+			plan.addLeg(populationFactory.createLeg(mode));
+
+			// last activity - adding destination activity and adding person to population
+			if (resultSet.getInt("personTripNum") == resultSet.getInt("lastTripNum")) {
+				Coord destCoordinates = new Coord(resultSet.getDouble("destX"), resultSet.getDouble("destY"));
+				actType = PopUtils.ActivityType(resultSet.getInt("destPurp"));
+				activity = populationFactory.createActivityFromCoord(actType, destCoordinates);
+				plan.addActivity(activity);
+				person.addPlan(plan);
+			}
 		}
+
 	}
 }

@@ -45,6 +45,7 @@ public class DbUtils {
 	 * @param String <b>commands</b>
 	 */
 	public static void runCommand(String commands) throws IOException {
+		System.out.println("psql command:" + commands);
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec(commands);
 
