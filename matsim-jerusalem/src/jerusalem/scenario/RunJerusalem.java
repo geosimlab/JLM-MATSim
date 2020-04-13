@@ -2,6 +2,7 @@ package jerusalem.scenario;
 
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Properties;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
@@ -11,28 +12,26 @@ import org.matsim.core.config.groups.ControlerConfigGroup.EventsFileFormat;
 import org.matsim.core.config.groups.ControlerConfigGroup.RoutingAlgorithmType;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup.ActivityParams;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup.ModeParams;
-import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.ModeRoutingParams;
 import org.matsim.core.config.groups.QSimConfigGroup.TrafficDynamics;
 import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy.OverwriteFileSetting;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.scoring.functions.ScoringParameters;
+
+import jerusalem.scenario.population.DbUtils;
 
 /**
  * @author Golan Ben-Dor
  */
-public class RunJerusalem
-{
-	final public static String INPUT_NETWORK = "E:\\Golan\\Jerusalem MATSim\\MATSim Input\\network\\4.network_2015_no_connectors_multi_modal_cleaned.xml";
-	final public static String INPUT_POPULATION = "E:\\Golan\\Jerusalem MATSim\\MATSim Input\\population\\2.population_centriods_ido_taxi_as_cars.xml";
-	final public static String OUTPUT_FOLDER = "E:\\Golan\\Jerusalem MATSim\\MATSim output\\";
+public class RunJerusalem {
+	final public static Properties props = DbUtils.readProperties("database.properties");
+	final public static String INPUT_NETWORK = props.getProperty("db.output_network_xml_path");
+	final public static String INPUT_POPULATION = props.getProperty("db.output_population_xml_path");
+	final public static String OUTPUT_FOLDER = props.getProperty("db.output_folder");
 	final public static String RUN_ID = "" + 5;
 
-	public static void main(String[] args)
-	{
+	public static void main(String[] args) {
 		// create a new MATSim config for JLM
 		Config config = createJeruslaemConfig();
 
@@ -51,8 +50,7 @@ public class RunJerusalem
 	/**
 	 * @return
 	 */
-	public static Config createJeruslaemConfig()
-	{
+	public static Config createJeruslaemConfig() {
 		Config config = ConfigUtils.createConfig();
 
 		config.network().setInputFile(INPUT_NETWORK);
@@ -63,7 +61,7 @@ public class RunJerusalem
 		config.controler().setWriteEventsInterval(1);
 		config.controler().setWritePlansInterval(1);
 		config.controler().setEventsFileFormats(EnumSet.of(EventsFileFormat.xml));
-		config.controler().setOutputDirectory(OUTPUT_FOLDER + RUN_ID + "\\");
+		config.controler().setOutputDirectory(OUTPUT_FOLDER + RUN_ID + "/");
 		config.controler().setOverwriteFileSetting(OverwriteFileSetting.overwriteExistingFiles);
 		config.controler().setFirstIteration(1);
 		config.controler().setLastIteration(1);
@@ -87,15 +85,14 @@ public class RunJerusalem
 
 		// modify global
 		config.global().setCoordinateSystem("EPSG:2039");
-		config.global().setNumberOfThreads(12);
+		config.global().setNumberOfThreads(8);
 		// ?? random seed?<param name="randomSeed" value="4711" />
 
 		// Add sub-tour mode choice
-		config.subtourModeChoice().setModes(new String[]
-		{ TransportMode.car, TransportMode.pt, TransportMode.walk, TransportMode.bike });
+		config.subtourModeChoice()
+				.setModes(new String[] { TransportMode.car, TransportMode.pt, TransportMode.walk, TransportMode.bike });
 		// TODO check that bike is biycle
-		config.subtourModeChoice().setChainBasedModes(new String[]
-		{ TransportMode.car });
+		config.subtourModeChoice().setChainBasedModes(new String[] { TransportMode.car });
 
 		// Add sub-tour mode choice
 		config.timeAllocationMutator().setMutationRange(3600);

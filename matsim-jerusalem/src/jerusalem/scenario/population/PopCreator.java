@@ -22,6 +22,7 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.api.core.v01.population.PopulationWriter;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.population.PersonUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import jerusalem.scenario.network.CreateNetwork;
@@ -32,8 +33,7 @@ import jerusalem.scenario.network.CreateNetwork;
 public class PopCreator {
 
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
-	private static final String path = "src/database.properties";
-	private static final Properties props = DbUtils.readProperties(path);
+	private static final Properties props = DbUtils.readProperties("database.properties");
 	private static final String user = props.getProperty("db.username");
 	private static final String password = props.getProperty("db.password");
 	private static final String db_url = props.getProperty("db.url");
@@ -65,8 +65,6 @@ public class PopCreator {
 
 	/**
 	 * Reads in pop_query.sql - query that returns all separate trips of all agents
-	 * TODO add idle agents - with only home activity (load persons table to db,
-	 * join it, sql manipulation)
 	 * 
 	 * @param path
 	 * @return
@@ -151,8 +149,17 @@ public class PopCreator {
 	 * @throws SQLException
 	 */
 	public static void createAgent(ResultSet resultSet) throws SQLException {
+		// TODO add agents attributes - think about more attributes
 		String agentId = resultSet.getString("hhid") + "-" + resultSet.getString("pnum");
 		person = populationFactory.createPerson(Id.create(agentId, Person.class));
+		// setting attributes
+		PersonUtils.setAge(person, resultSet.getInt("age"));// persons.age
+		PersonUtils.setSex(person, resultSet.getInt("gender") == 1 ? "male" : "female");// persons.gender
+		PersonUtils.setEmployed(person, PopUtils.Employed(resultSet.getInt("perstypedetailed")));// persons.persTypeDetailed
+		PersonUtils.setLicence(person, resultSet.getInt("driverlicense") == 1 ? "yes" : "no");// persons.driverLicense
+		PersonUtils.setCarAvail(person,
+				PopUtils.CarAvail(resultSet.getInt("numauto"), resultSet.getInt("usualDriver")));// households.numauto,persons.usualDriver
+		person.getAttributes().putAttribute("sector", PopUtils.Sector(resultSet.getInt("sector")));// households.sector
 		population.addPerson(person);
 		plan = populationFactory.createPlan();
 	}

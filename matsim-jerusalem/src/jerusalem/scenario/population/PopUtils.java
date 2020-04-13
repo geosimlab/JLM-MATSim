@@ -8,7 +8,7 @@ public class PopUtils {
 //	based on JTMT-3C ABM Main Output File Structure
 	/**
 	 * Returns description of activity type from integer, according to the JTMT-3C
-	 * ABM Main Output File Structure
+	 * ABM Main Output File Structure (Trip/tour purposes:)
 	 * 
 	 * @param int <b>i</b>
 	 * @return String actResult
@@ -53,7 +53,7 @@ public class PopUtils {
 
 	/**
 	 * Returns description of mode from integer, according to the JTMT-3C ABM Main
-	 * Output File Structure
+	 * Output File Structure (Trip/tour modes (disaggregated files))
 	 * 
 	 * @param int <b>i</b>
 	 * @return String actmodeResult
@@ -64,8 +64,10 @@ public class PopUtils {
 		case 1:// 1. SOV
 		case 2:// 2. HOV2/driver
 		case 3:// 3. HOV3+/driver
-		case 4:// 4. HOV/passenger (not assigned)
 			modeResult = "car";
+			break;
+		case 4:// 4. HOV/passenger (not assigned)
+			modeResult = "ride";
 			break;
 		case 5:// 5. Bus walk access
 		case 6:// 6. Bus KNR
@@ -86,12 +88,103 @@ public class PopUtils {
 			modeResult = "bike";
 			break;
 		case 16:// 16. Taxi (can be added to HOV3/driver for assignment)
-			modeResult = "taxi";
+			modeResult = "car";
+//			modeResult = "taxi";
 			break;
 		default:
 			modeResult = "other";
 			break;
 		}
 		return modeResult;
+	}
+
+	/**
+	 * Returns description of Employed from integer, according to the JTMT-3C ABM
+	 * Main Output File Structure (Table 1: Person types - disaggregate)
+	 * 
+	 * @param int <b>i</b>
+	 * @return boolean employedResult
+	 */
+	public static Boolean Employed(int i) {
+		boolean employedResult;
+		if (i <= 6 | i == 10 | i == 11 | i == 16) {
+
+			// 1, "ft-worker, 19+"
+			// 3, "ft-worker, student"
+			// 4, "pt-worker, 19+"
+			// 6, "pt-worker, student"
+			// 10, "univ student, Major univ, worker, on-campus"
+			// 11, "univ student, Major univ, worker, off-campus"
+			// 16, "driving age, worker, 14-18"
+			employedResult = true;
+		} else {
+
+			// 8, "univ student, Major univ, non-worker"
+			// 9, "univ student, OTHER, non-worker"
+			// 13, "non-worker homemaker, 19-64"
+			// 15, "retired, 65+"
+			// 17, "driving age, non-worker, 14-18"
+			// 19, "pre-driving age, 7-13"
+			// 21, "pre-school, 0-6"
+			employedResult = false;
+		}
+		return employedResult;
+	}
+
+	/**
+	 * Returns description of sector from integer, according to the JTMT-3C ABM Main
+	 * Output File Structure (households table row 6)
+	 * 
+	 * @param int <b>i</b>
+	 * @return String actmodeResult
+	 */
+	public static String Sector(int i) {
+		String sectorResult = null;
+		switch (i) {
+		case 1:
+			sectorResult = "Arab";
+			break;
+		case 2:
+			sectorResult = "Ultra-Orthodox";
+			break;
+		case 3:
+			sectorResult = "Secular";
+			break;
+		case 4:
+			sectorResult = "Palestine";
+			break;
+		}
+		return sectorResult;
+	}
+
+	/**
+	 * Returns description of sector from integer, according to the JTMT-3C ABM Main
+	 * Output File Structure (households table, persons table)
+	 * 
+	 * @param numAuto
+	 * @param usualDriver
+	 * @return String carAvailResult
+	 */
+	public static String CarAvail(int numAuto, int usualDriver) {
+		// numAuto is number of cars in household, usualDriver is whether person is
+		// usual driver. switch statement was reduced
+		String carAvailResult = null;
+		switch (usualDriver * 10 + numAuto) {
+		case 0:
+		case 1:
+		case 10:
+			carAvailResult = "never";
+			break;
+		case 2:
+		case 3:
+		case 11:
+			carAvailResult = "sometimes";
+			break;
+		case 12:
+		case 13:
+			carAvailResult = "always";
+			break;
+		}
+		return carAvailResult;
 	}
 }

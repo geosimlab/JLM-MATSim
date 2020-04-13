@@ -4,22 +4,15 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
@@ -27,26 +20,25 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.MultimodalNetworkCleaner;
 import org.matsim.core.network.algorithms.NetworkCleaner;
-import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkWriter;
+
+import jerusalem.scenario.population.DbUtils;
 
 /**
  * @author Golan Ben-Dor
  */
-public class CreateNetwork
-{
+public class CreateNetwork {
 	// Logger
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
-
-	private final static String INPUT_LINKS_CSV = "E:\\Golan\\Jerusalem MATSim\\Data recieved\\Current State\\network_pt\\2015\\links.csv";
-	private final static String INPUT_NODES_CSV = "E:\\Golan\\Jerusalem MATSim\\Data recieved\\Current State\\network_pt\\2015\\nodes.csv";
-	private final static String OUTPUT_NETWORK_FOLDER = "E:\\Golan\\Jerusalem MATSim\\MATSim Input\\";
+	private final static Properties props = DbUtils.readProperties("database.properties");
+	private final static String INPUT_LINKS_CSV = props.getProperty("db.input_links_csv");
+	private final static String INPUT_NODES_CSV = props.getProperty("db.input_nodes_csv");;
+	private final static String OUTPUT_NETWORK_FOLDER = props.getProperty("db.output_folder");
 	private final static String NETWORK_ID = "" + 4;
 
 	private final static boolean REMOVE_CONNECTOR = true;
 
-	public static void main(String[] args) throws IOException
-	{
+	public static void main(String[] args) throws IOException {
 		// Read nodes.csv
 		Map<String, Coord> nodesMap = readNodesCSV(INPUT_NODES_CSV);
 
@@ -56,7 +48,8 @@ public class CreateNetwork
 		// Create the Jerusalem MATSim Network
 		Network jlmNet = createMATSimNet(nodesMap, linksMap);
 
-		// Run network cleaner and multiModeNetworkCleaner- deleting nodes which do not connects
+		// Run network cleaner and multiModeNetworkCleaner- deleting nodes which do not
+		// connects
 		jerusalemNetworkCleaner(jlmNet);
 
 		// Write network
@@ -72,12 +65,10 @@ public class CreateNetwork
 	 * <li>[3] = "y" (double) <br>
 	 * <br>
 	 * 
-	 * @param inputNodesCSV
-	 *            absolute path for "nodes.csv".
+	 * @param inputNodesCSV absolute path for "nodes.csv".
 	 * @return Map of "String, Coord"
 	 */
-	private static Map<String, Coord> readNodesCSV(String inputNodesCSV)
-	{
+	private static Map<String, Coord> readNodesCSV(String inputNodesCSV) {
 		log.info("Reading nodes.csv");
 
 		Map<String, Coord> nodesMap = new TreeMap();
@@ -85,15 +76,13 @@ public class CreateNetwork
 		String line = "";
 		String cvsSplitBy = ",";
 
-		try
-		{
+		try {
 			br = new BufferedReader(new FileReader(inputNodesCSV));
 
 			// skip first line (header)
 			line = br.readLine();
 
-			while ((line = br.readLine()) != null)
-			{
+			while ((line = br.readLine()) != null) {
 				// use comma as separator
 				String[] lineArr = line.split(cvsSplitBy);
 				String nodeId = lineArr[0];
@@ -103,21 +92,15 @@ public class CreateNetwork
 				// write nodes to map Map<String, Coord>
 				nodesMap.put(nodeId, new Coord(nodeX, nodeY));
 			}
-		} catch (FileNotFoundException e)
-		{
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (IOException e)
-		{
+		} catch (IOException e) {
 			e.printStackTrace();
-		} finally
-		{
-			if (br != null)
-			{
-				try
-				{
+		} finally {
+			if (br != null) {
+				try {
 					br.close();
-				} catch (IOException e)
-				{
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
@@ -163,14 +146,11 @@ public class CreateNetwork
 	 * simulation (no congestion) <br>
 	 * <br>
 	 * 
-	 * @param inputLinksCSV
-	 *            an absolute path for "links.csv"
-	 * @param isConnector
-	 *            remove connectors if true
+	 * @param inputLinksCSV an absolute path for "links.csv"
+	 * @param isConnector   remove connectors if true
 	 * @return Map "String, ArrayList<JerusalemLink"
 	 */
-	private static Map<String, ArrayList<JerusalemLink>> readLinksCSV(String inputLinksCSV, boolean isConnector)
-	{
+	private static Map<String, ArrayList<JerusalemLink>> readLinksCSV(String inputLinksCSV, boolean isConnector) {
 		log.info("Reading links.csv");
 
 		// test commit
@@ -180,15 +160,13 @@ public class CreateNetwork
 		String line = "";
 		String cvsSplitBy = ",";
 
-		try
-		{
+		try {
 			br = new BufferedReader(new FileReader(inputLinksCSV));
 
 			// skip first line (header)
 			line = br.readLine();
 
-			while ((line = br.readLine()) != null)
-			{
+			while ((line = br.readLine()) != null) {
 				ArrayList<JerusalemLink> linkArr = new ArrayList<JerusalemLink>();
 				String id = "";
 
@@ -198,10 +176,8 @@ public class CreateNetwork
 				JerusalemLink jerusalemLink = new JerusalemLink(lineArr);
 
 				// remove connectors - road type 9
-				if (isConnector == true)
-				{
-					if (!(jerusalemLink.getRoadType() == 9))
-					{
+				if (isConnector == true) {
+					if (!(jerusalemLink.getRoadType() == 9)) {
 						// add link elements to arrLink
 						linkArr.add(jerusalemLink);
 
@@ -212,8 +188,7 @@ public class CreateNetwork
 					}
 				}
 				// create all links
-				else
-				{
+				else {
 					log.info("add all links to JLM network");
 					// add link elements to arrLink
 					linkArr.add(jerusalemLink);
@@ -224,21 +199,15 @@ public class CreateNetwork
 
 				}
 			}
-		} catch (FileNotFoundException e)
-		{
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (IOException e)
-		{
+		} catch (IOException e) {
 			e.printStackTrace();
-		} finally
-		{
-			if (br != null)
-			{
-				try
-				{
+		} finally {
+			if (br != null) {
+				try {
 					br.close();
-				} catch (IOException e)
-				{
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
@@ -250,14 +219,12 @@ public class CreateNetwork
 	 * Creates a MATSim network from nodesMap - "String, Coord" and from linksMap
 	 * "String, ArrayList(JerusalemLink)"
 	 * 
-	 * @param nodesMap
-	 *            "String, Coord"
-	 * @param linksMap
-	 *            "String, ArrayList(JerusalemLink)"
+	 * @param nodesMap "String, Coord"
+	 * @param linksMap "String, ArrayList(JerusalemLink)"
 	 * @return MATSim network
 	 */
-	private static Network createMATSimNet(Map<String, Coord> nodesMap, Map<String, ArrayList<JerusalemLink>> linksMap)
-	{
+	private static Network createMATSimNet(Map<String, Coord> nodesMap,
+			Map<String, ArrayList<JerusalemLink>> linksMap) {
 		log.info("creating a MATSim network");
 
 		Network net = NetworkUtils.createNetwork();
@@ -265,8 +232,7 @@ public class CreateNetwork
 
 		log.info("creating MATSim nodes");
 
-		for (Map.Entry<String, Coord> entry : nodesMap.entrySet())
-		{
+		for (Map.Entry<String, Coord> entry : nodesMap.entrySet()) {
 			String nodeId = entry.getKey();
 			Coord nodeCoord = entry.getValue();
 			Node node = fac.createNode(Id.createNodeId(nodeId), nodeCoord);
@@ -276,15 +242,13 @@ public class CreateNetwork
 		log.info("creating MATSim links");
 
 		// iterate through link IDs
-		for (Map.Entry<String, ArrayList<JerusalemLink>> entry : linksMap.entrySet())
-		{
+		for (Map.Entry<String, ArrayList<JerusalemLink>> entry : linksMap.entrySet()) {
 			String linkId = entry.getKey();
 			ArrayList<JerusalemLink> linkArr = entry.getValue();
 			Link link = null;
 
 			// iterate through link attributes
-			for (JerusalemLink jerusalemLink : linkArr)
-			{
+			for (JerusalemLink jerusalemLink : linkArr) {
 				// create node ID object to get read from the network
 				Id<Node> fromID = Id.createNodeId(jerusalemLink.getFromId());
 				Id<Node> toID = Id.createNodeId(jerusalemLink.getToId());
@@ -305,20 +269,14 @@ public class CreateNetwork
 	/**
 	 * set a MATSim link with attributes
 	 * 
-	 * @param link
-	 *            a MATSim link
-	 * @param capacity
-	 *            hourly capacity of link
-	 * @param length
-	 *            meters
-	 * @param travelTime
-	 *            on link
-	 * @param modes
-	 *            a set of allowed modes
+	 * @param link       a MATSim link
+	 * @param capacity   hourly capacity of link
+	 * @param length     meters
+	 * @param travelTime on link
+	 * @param modes      a set of allowed modes
 	 */
 	private static void setLinkAttributes(Link link, double capacity, double length, double travelTime,
-			Set<String> modes)
-	{
+			Set<String> modes) {
 		link.setCapacity(capacity);
 		link.setLength(length);
 
@@ -331,12 +289,10 @@ public class CreateNetwork
 	/**
 	 * Method to clean the network (dead nodes which do not connect to anywhere)
 	 * 
-	 * @param network
-	 *            Jerusalem Network (not cleaned)
+	 * @param network Jerusalem Network (not cleaned)
 	 * @return Cleaned MATSim network
 	 */
-	private static void jerusalemNetworkCleaner(Network jlmNet)
-	{
+	private static void jerusalemNetworkCleaner(Network jlmNet) {
 		log.info("Running NetworkCleaner");
 
 		NetworkCleaner nwCleaner = new NetworkCleaner();
