@@ -1,4 +1,6 @@
-DROP TABLE IF EXISTS trips, TAZ_coordinates, persons,households;
+CREATE EXTENSION IF NOT EXISTS postgis;
+SET search_path TO "$user", postgis, topology, public;
+DROP TABLE IF EXISTS trips, taz_centroid, persons,households;
 CREATE TABLE IF NOT EXISTS trips(
 	uniqueid INT NOT NULL CHECK (uniqueid > 0),
 	jointTripNum INT NOT NULL CHECK (jointTripNum  >= 0),
@@ -102,9 +104,4 @@ CREATE TABLE IF NOT EXISTS households (
   dwellingType INT NOT NULL CHECK (dwellingType >= 0),
   numAuto INT NOT NULL CHECK (numAuto >= 0),
   modelFailureId INT NOT NULL CHECK (modelFailureId >= 0)
-);
-CREATE TABLE IF NOT EXISTS TAZ_coordinates(
-	X real NOT NULL,
-	Y real NOT NULL,
-	taz INT NOT NULL CHECK (taz > 0)
 );

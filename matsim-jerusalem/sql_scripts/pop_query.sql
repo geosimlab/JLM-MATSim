@@ -27,10 +27,10 @@ SELECT DISTINCT h.hhid,
 	   ON h.hhid = p.hhid
 	   LEFT JOIN trips as t
 	   ON p.hhid = t.hhid AND p.pnum = t.pnum
-	   LEFT JOIN TAZ_coordinates as tzh 
+	   LEFT JOIN taz_centroid as tzh 
 	   ON h.homeTaz = tzh.taz
-	   LEFT JOIN TAZ_coordinates as tzo 
+	   LEFT JOIN taz_centroid as tzo 
 	   ON t.origTaz = tzo.taz 
-	   LEFT JOIN TAZ_coordinates as tzd 
+	   LEFT JOIN taz_centroid as tzd 
 	   ON t.destTaz = tzd.taz 
 	   ORDER BY h.hhid,p.pnum,t.personTripNum;

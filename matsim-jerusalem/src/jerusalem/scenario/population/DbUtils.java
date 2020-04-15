@@ -44,8 +44,10 @@ public class DbUtils {
 	 * 
 	 * @param String <b>commands</b>
 	 */
-	public static void runCommand(String commands) throws IOException {
-		System.out.println("psql command:" + commands);
+	public static void runCommand(String command) throws IOException {
+		System.out.println("psql command:" + command);
+		String[] commands = { "cmd", "/C", command };// the string is on order to handle with pipes,
+		// https://stackoverflow.com/questions/5928225/how-to-make-pipes-work-with-runtime-exec
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec(commands);
 

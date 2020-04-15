@@ -19,7 +19,7 @@ public class DbInitialize {
 	private static String trip_path = props.getProperty("db.trip_path");
 	private static String person_path = props.getProperty("db.person_path");
 	private static String household_path = props.getProperty("db.household_path");
-	private static String taz_path = props.getProperty("db.taz_paths");
+	private static String TAZShp_path = props.getProperty("db.input_taz_shp");
 
 	// helper for psql commands - the end of a lot of commands is similar
 	private static String helperCommandEnd = username + ":" + password + "@" + url + ":" + port + "/" + db_name;
@@ -40,14 +40,13 @@ public class DbInitialize {
 	private static String copyHouseHolds = "psql -c \"\\copy households FROM '" + household_path
 			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
 
-	// psql command: copying the TAZ_coordinated csv into db
-	private static String copyTAZ = "psql -c \"\\copy TAZ_coordinates FROM '" + taz_path
-			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+	// psql command: copying the TAZShp into db
+	private static String copyTAZShp = "shp2pgsql -I -d -s 2039 -g geometry " + TAZShp_path
+			+ " public.taz600 | psql postgresql://" + helperCommandEnd;
 
 	// psql command: refering to sql files (/sql_scirpts/create_indices) that
-	// creates indices
-	private static String createIndices = "psql -c \"\\i ./sql_scripts/create_indices.sql\" postgresql://"
-			+ helperCommandEnd;
+	// creates taz_centroid table and creates indices for other tables
+	private static String wrapup = "psql -c \"\\i ./sql_scripts/wrapup.sql\" postgresql://" + helperCommandEnd;
 
 	public static void main(String[] args) throws IOException {
 
@@ -56,7 +55,7 @@ public class DbInitialize {
 		DbUtils.runCommand(copyTrips);
 		DbUtils.runCommand(copyPersons);
 		DbUtils.runCommand(copyHouseHolds);
-		DbUtils.runCommand(copyTAZ);
-		DbUtils.runCommand(createIndices);
+		DbUtils.runCommand(copyTAZShp);
+		DbUtils.runCommand(wrapup);
 	}
 }
