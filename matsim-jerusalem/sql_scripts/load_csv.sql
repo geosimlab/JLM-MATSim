@@ -1,6 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS postgis;
 SET search_path TO "$user", postgis, topology, public;
-DROP TABLE IF EXISTS trips, taz_centroid, persons,households;
+DROP TABLE IF EXISTS trips, taz_centroid, persons,households,taz600,bldg,poi_bldg ,inner_taz,bldg_cent,bental_households;
 CREATE TABLE IF NOT EXISTS trips(
 	uniqueid INT NOT NULL CHECK (uniqueid > 0),
 	jointTripNum INT NOT NULL CHECK (jointTripNum  >= 0),

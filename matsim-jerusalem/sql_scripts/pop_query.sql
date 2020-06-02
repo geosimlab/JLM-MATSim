@@ -15,14 +15,14 @@ SELECT DISTINCT h.hhid,
 	   h.sector,
 	   p.usualDriver,
 	   h.numAuto,
-	   tzh.X AS homeX,
-	   tzh.Y AS homeY,
+	   h.x AS homeX,
+	   h.y AS homeY,
 	   tzo.X AS origX,
 	   tzo.Y AS origY,
 	   tzd.X AS destX,
 	   tzd.Y AS destY,
 	   MAX(t.personTripNum) OVER (PARTITION BY t.hhid,t.pnum) AS lastTripNum 
-	   FROM households AS h
+	   FROM households_final AS h
 	   LEFT JOIN persons AS p
 	   ON h.hhid = p.hhid
 	   LEFT JOIN trips as t

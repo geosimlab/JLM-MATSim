@@ -1,6 +1,7 @@
 package jerusalem.scenario.population;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -44,12 +45,13 @@ public class DbUtils {
 	 * 
 	 * @param String <b>commands</b>
 	 */
-	public static void runCommand(String command) throws IOException {
+	public static void runCommand(String command, String dirStr) throws IOException {
 		System.out.println("psql command:" + command);
 		String[] commands = { "cmd", "/C", command };// the string is on order to handle with pipes,
 		// https://stackoverflow.com/questions/5928225/how-to-make-pipes-work-with-runtime-exec
+		File dir = new File(dirStr);
 		Runtime rt = Runtime.getRuntime();
-		Process proc = rt.exec(commands);
+		Process proc = rt.exec(commands, null, dir);
 
 		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 

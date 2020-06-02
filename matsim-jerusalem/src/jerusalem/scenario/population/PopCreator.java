@@ -180,8 +180,12 @@ public class PopCreator {
 			plan.addActivity(activity);
 			person.addPlan(plan);
 		} else {
-			Coord origCoordinates = new Coord(resultSet.getDouble("origX"), resultSet.getDouble("origY"));
 			String actType = PopUtils.ActivityType(resultSet.getInt("origPurp"));
+			Coord origCoordinates = new Coord(resultSet.getDouble("origX"), resultSet.getDouble("origY"));
+			// if activity is in home, use home coordinates
+			if (actType == "home") {
+				origCoordinates = new Coord(resultSet.getDouble("homeX"), resultSet.getDouble("homeY"));
+			}
 			double endTime = resultSet.getDouble("finalDepartMinute") * 60 + 10800;
 			String mode = PopUtils.Mode(resultSet.getInt("modeCode"));
 
@@ -193,7 +197,7 @@ public class PopCreator {
 
 			// last activity - adding destination activity and adding person to population
 			if (resultSet.getInt("personTripNum") == resultSet.getInt("lastTripNum")) {
-				Coord destCoordinates = new Coord(resultSet.getDouble("destX"), resultSet.getDouble("destY"));
+				Coord destCoordinates = new Coord(resultSet.getDouble("homeX"), resultSet.getDouble("homeY"));
 				actType = PopUtils.ActivityType(resultSet.getInt("destPurp"));
 				activity = populationFactory.createActivityFromCoord(actType, destCoordinates);
 				plan.addActivity(activity);
