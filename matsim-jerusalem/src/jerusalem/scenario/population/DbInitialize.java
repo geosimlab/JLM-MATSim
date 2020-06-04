@@ -44,6 +44,11 @@ public class DbInitialize {
 	private static String copyHouseHolds = "psql -c \"\\copy households FROM '" + household_path
 			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
 
+	// psql command: copying the bental_jtmt_code_conversion csv into db
+	private static String copybental_jtmt_code_conversion = "psql -c \"\\copy bental_jtmt_code_conversion FROM '"
+			+ "D:/Users/User/Dropbox/matsim_begin/BENTAL_JTMT_CODE_CONVERSION.csv"
+			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+
 	// psql command: copying the TAZShp into db
 	private static String copyTAZShp = "ogr2ogr -progress -overwrite -f \"PostgreSQL\" -a_srs \"EPSG:2039\" PG:\"host="
 			+ url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" " + TAZShp_path
@@ -83,6 +88,7 @@ public class DbInitialize {
 		DbUtils.runCommand(copyTrips, psql_path);
 		DbUtils.runCommand(copyPersons, psql_path);
 		DbUtils.runCommand(copyHouseHolds, psql_path);
+		DbUtils.runCommand(copybental_jtmt_code_conversion, psql_path);
 		DbUtils.runCommand(copyTAZShp, ogr2ogr_path);
 		DbUtils.runCommand(copyBLDGShp, ogr2ogr_path);
 		DbUtils.runCommand(copyBLDGPOIShp, ogr2ogr_path);

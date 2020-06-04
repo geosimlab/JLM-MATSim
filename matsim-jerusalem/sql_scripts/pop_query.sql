@@ -25,7 +25,7 @@ SELECT DISTINCT h.hhid,
 	   FROM households_final AS h
 	   LEFT JOIN persons AS p
 	   ON h.hhid = p.hhid
-	   LEFT JOIN trips as t
+	   LEFT JOIN trips_final as t
 	   ON p.hhid = t.hhid AND p.pnum = t.pnum
 	   LEFT JOIN taz_centroid as tzh 
 	   ON h.homeTaz = tzh.taz
