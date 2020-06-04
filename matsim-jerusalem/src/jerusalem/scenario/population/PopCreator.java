@@ -181,11 +181,17 @@ public class PopCreator {
 			person.addPlan(plan);
 		} else {
 			String actType = PopUtils.ActivityType(resultSet.getInt("origPurp"));
-			Coord origCoordinates = new Coord(resultSet.getDouble("origX"), resultSet.getDouble("origY"));
-			// if activity is in home, use home coordinates
-			if (actType == "home") {
+			Coord origCoordinates;
+			resultSet.getDouble("actX");
+			if (!resultSet.wasNull()) {
+				origCoordinates = new Coord(resultSet.getDouble("actX"), resultSet.getDouble("actY"));
+			} else if (actType == "home") {
 				origCoordinates = new Coord(resultSet.getDouble("homeX"), resultSet.getDouble("homeY"));
+			} else {
+				origCoordinates = new Coord(resultSet.getDouble("origX"), resultSet.getDouble("origY"));
 			}
+
+			// if activity is in home, use home coordinates
 			double endTime = resultSet.getDouble("finalDepartMinute") * 60 + 10800;
 			String mode = PopUtils.Mode(resultSet.getInt("modeCode"));
 

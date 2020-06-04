@@ -76,6 +76,13 @@ public class DbInitialize {
 			+ System.getProperty("user.dir").replace("\\", "/")
 			+ "/sql_scripts/create_households_coordinates.sql\" postgresql://" + helperCommandEnd;
 
+	// psql command: referring to sql files
+	// (/sql_scirpts/create_households_coordinates.sql) that
+	// creates a table with home coordinates for each household by taz
+	private static String create_other_activities_coordinates = "psql -c \"\\i "
+			+ System.getProperty("user.dir").replace("\\", "/")
+			+ "/sql_scripts/create_other_activities_coordinates.sql\" postgresql://" + helperCommandEnd;
+
 	// psql command: crating partial tables, creating indices with file
 	// (/sql_scirpts/wrapup.sql)
 	private static String wrapup = "psql -c \"\\i " + System.getProperty("user.dir").replace("\\", "/")
@@ -95,5 +102,6 @@ public class DbInitialize {
 		DbUtils.runCommand(cascade_rounding, psql_path);
 		DbUtils.runCommand(wrapup, psql_path);
 		DbUtils.runCommand(create_households_coordinates, psql_path);
+		DbUtils.runCommand(create_other_activities_coordinates, psql_path);
 	}
 }

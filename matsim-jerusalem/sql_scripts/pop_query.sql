@@ -21,6 +21,8 @@ SELECT DISTINCT h.hhid,
 	   tzo.Y AS origY,
 	   tzd.X AS destX,
 	   tzd.Y AS destY,
+	   t.st_x as actX,
+	   t.st_y as actY,
 	   MAX(t.personTripNum) OVER (PARTITION BY t.hhid,t.pnum) AS lastTripNum 
 	   FROM households_final AS h
 	   LEFT JOIN persons AS p
