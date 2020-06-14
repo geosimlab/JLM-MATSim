@@ -1,6 +1,8 @@
 CREATE EXTENSION IF NOT EXISTS postgis;
 SET search_path TO "$user", postgis, topology, public;
-DROP TABLE IF EXISTS trips, taz_centroid, persons,households, households_final,taz600,bldg,poi_bldg ,inner_taz,bldg_cent,bental_households,bental_jtmt_code_conversion;
+DROP TABLE IF EXISTS trips, taz_centroid, persons,households, 
+households_final,taz600,bldg,poi_bldg ,inner_taz,bldg_cent,
+bental_households,bental_jtmt_code_conversion,nodes,links;
 CREATE TABLE IF NOT EXISTS trips(
 	uniqueid INT NOT NULL CHECK (uniqueid > 0),
 	jointTripNum INT NOT NULL CHECK (jointTripNum  >= 0),
@@ -105,6 +107,7 @@ CREATE TABLE IF NOT EXISTS households (
   numAuto INT NOT NULL CHECK (numAuto >= 0),
   modelFailureId INT NOT NULL CHECK (modelFailureId >= 0)
 );
+
 CREATE TABLE IF NOT EXISTS bental_jtmt_code_conversion (
     usg_group integer NOT NULL,
     usg_code integer NOT NULL,
@@ -117,4 +120,25 @@ CREATE TABLE IF NOT EXISTS bental_jtmt_code_conversion (
     purp_6 integer,
     purp_7 integer,
     purp_8 integer
+);
+
+CREATE TABLE IF NOT EXISTS nodes(
+    i integer NOT NULL,
+    is_centroid varchar(6) NOT NULL,
+    x double precision NOT NULL,
+    y double precision NOT NULL,
+    geometry geometry, 
+    PRIMARY KEY (i)
+);
+
+CREATE TABLE IF NOT EXISTS links(
+    i integer,
+    j integer,
+    length_met double precision,
+    mode varchar(50),
+    num_lanes double precision,
+    type double precision,
+    "@at" double precision,
+    "@linkcap" double precision,
+    s0link_m_per_s double precision
 );

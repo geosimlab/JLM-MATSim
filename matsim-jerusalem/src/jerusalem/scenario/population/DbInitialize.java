@@ -19,6 +19,9 @@ public class DbInitialize {
 	private static String trip_path = props.getProperty("db.trip_path");
 	private static String person_path = props.getProperty("db.person_path");
 	private static String household_path = props.getProperty("db.household_path");
+	private static String nodes_path = props.getProperty("db.nodes_path");
+	private static String links_path = props.getProperty("db.links_path");
+	private static String bental_jtmt_code_conversion_path = props.getProperty("db.bental_jtmt_code_conversion_path");
 	private static String TAZShp_path = props.getProperty("db.input_taz_shp");
 	private static String BLDGShp_path = props.getProperty("db.input_bldg_shp");
 	private static String psql_path = props.getProperty("db.psql_path");
@@ -44,10 +47,17 @@ public class DbInitialize {
 	private static String copyHouseHolds = "psql -c \"\\copy households FROM '" + household_path
 			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
 
+	// psql command: copying the nodes csv into db
+	private static String copyNodes = "psql -c \"\\copy nodes (i,is_centroid,x,y) FROM '" + nodes_path
+			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+
+	// psql command: copying the links csv into db
+	private static String copyLinks = "psql -c \"\\copy links FROM '" + links_path
+			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+
 	// psql command: copying the bental_jtmt_code_conversion csv into db
 	private static String copybental_jtmt_code_conversion = "psql -c \"\\copy bental_jtmt_code_conversion FROM '"
-			+ "D:/Users/User/Dropbox/matsim_begin/BENTAL_JTMT_CODE_CONVERSION.csv"
-			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+			+ bental_jtmt_code_conversion_path + "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
 
 	// psql command: copying the TAZShp into db
 	private static String copyTAZShp = "ogr2ogr -progress -overwrite -f \"PostgreSQL\" -a_srs \"EPSG:2039\" PG:\"host="
@@ -59,7 +69,7 @@ public class DbInitialize {
 			+ url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" " + BLDGShp_path
 			+ " BLDG -nlt PROMOTE_TO_MULTI -lco geometry_name=geometry";
 
-	// psql command: copying the BLDGShp into db
+	// psql command: copying the POI_BLDGshp into db
 	private static String copyBLDGPOIShp = "ogr2ogr -progress -overwrite -f \"PostgreSQL\" -a_srs \"EPSG:2039\" PG:\"host="
 			+ url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" " + BLDGShp_path
 			+ " POI_BLDG -nlt PROMOTE_TO_MULTI -lco geometry_name=geometry";
@@ -95,6 +105,8 @@ public class DbInitialize {
 		DbUtils.runCommand(copyTrips, psql_path);
 		DbUtils.runCommand(copyPersons, psql_path);
 		DbUtils.runCommand(copyHouseHolds, psql_path);
+		DbUtils.runCommand(copyNodes, psql_path);
+		DbUtils.runCommand(copyLinks, psql_path);
 		DbUtils.runCommand(copybental_jtmt_code_conversion, psql_path);
 		DbUtils.runCommand(copyTAZShp, ogr2ogr_path);
 		DbUtils.runCommand(copyBLDGShp, ogr2ogr_path);

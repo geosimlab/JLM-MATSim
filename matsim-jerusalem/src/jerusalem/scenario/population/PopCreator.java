@@ -48,7 +48,7 @@ public class PopCreator {
 	private static Person person;
 	private static Plan plan;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SQLException {
 
 		// initial setup
 		initialPopulationSetup();
@@ -105,30 +105,29 @@ public class PopCreator {
 	 * population and adds activities to the agents
 	 * 
 	 * @param query
+	 * @throws SQLException
 	 */
-	public static void readPopulation(String query) {
-		try (Connection con = DriverManager.getConnection(url, user, password);
-				PreparedStatement pst = con.prepareStatement(query);
-				ResultSet resultSet = pst.executeQuery()) {
+	public static void readPopulation(String query) throws SQLException {
+		Connection con = DriverManager.getConnection(url, user, password);
+		con.setAutoCommit(false);
+		PreparedStatement pst = con.prepareStatement(query);
+		pst.setFetchSize(50000);
+		ResultSet resultSet = pst.executeQuery();
+		int i = 0;
+		while (resultSet.next()) {
 
-			int i = 0;
-			while (resultSet.next()) {
-
-				// creating a new person if one started. 1 is for a person with at least one
-				// trip, 0 is for a person that stays home
-				boolean firstTrip = resultSet.getInt("personTripNum") == 1 | resultSet.getInt("personTripNum") == 0;
-				if (firstTrip) {
-					createAgent(resultSet);
-				}
-				addActivityAndLeg(resultSet);
-				if (i % 100000 == 0) {
-					log.info("read line #" + i + " from trips table");
-				}
-				i++;
+			// creating a new person if one started. 1 is for a person with at least one
+			// trip, 0 is for a person that stays home
+			boolean firstTrip = resultSet.getInt("personTripNum") == 1 | resultSet.getInt("personTripNum") == 0;
+			if (firstTrip) {
+				createAgent(resultSet);
 			}
+			addActivityAndLeg(resultSet);
+			if (i % 100000 == 0) {
+				log.info("read line #" + i + " from trips table");
+			}
+			i++;
 
-		} catch (SQLException ex) {
-			ex.printStackTrace();
 		}
 	}
 

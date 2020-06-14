@@ -259,7 +259,7 @@ public class CreateNetwork {
 				link = fac.createLink(Id.createLinkId(linkId), fromNode, toNode);
 				double travelTime = jerusalemLink.getLength() / jerusalemLink.getFreeSpeed();
 				setLinkAttributes(link, jerusalemLink.getCapacity(), jerusalemLink.getLength(), travelTime,
-						jerusalemLink.getMode());
+						jerusalemLink.getMode(), jerusalemLink.getLaneNum());
 			}
 			net.addLink(link);
 		}
@@ -276,7 +276,7 @@ public class CreateNetwork {
 	 * @param modes      a set of allowed modes
 	 */
 	private static void setLinkAttributes(Link link, double capacity, double length, double travelTime,
-			Set<String> modes) {
+			Set<String> modes, double numberOfLanes) {
 		link.setCapacity(capacity);
 		link.setLength(length);
 
@@ -284,6 +284,7 @@ public class CreateNetwork {
 		// be able to travel forward in the next time step (matsim time step logic)
 		link.setFreespeed(link.getLength() / (travelTime - 0.1));
 		link.setAllowedModes(modes);
+		link.setNumberOfLanes(numberOfLanes);
 	}
 
 	/**
