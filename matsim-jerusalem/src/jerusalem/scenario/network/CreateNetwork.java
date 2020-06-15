@@ -1,9 +1,11 @@
 package jerusalem.scenario.network;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
@@ -31,19 +33,23 @@ public class CreateNetwork {
 	// Logger
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
-	private final static String INPUT_LINKS_CSV = props.getProperty("db.input_links_csv");
-	private final static String INPUT_NODES_CSV = props.getProperty("db.input_nodes_csv");;
 	private final static String OUTPUT_NETWORK_FOLDER = props.getProperty("db.output_folder");
-	private final static String NETWORK_ID = "" + 4;
+	private final static String NETWORK_ID = "" + 5;
+	private static final String user = props.getProperty("db.username");
+	private static final String password = props.getProperty("db.password");
+	private static final String db_url = props.getProperty("db.url");
+	private static final String port = props.getProperty("db.port");
+	private static final String db_name = props.getProperty("db.db_name");
+	private static final String url = "jdbc:postgresql://" + db_url + ":" + port + "/" + db_name + "?loggerLevel=DEBUG";
 
 	private final static boolean REMOVE_CONNECTOR = true;
 
-	public static void main(String[] args) throws IOException {
-		// Read nodes.csv
-		Map<String, Coord> nodesMap = readNodesCSV(INPUT_NODES_CSV);
+	public static void main(String[] args) throws IOException, SQLException {
+		// Read nodes
+		Map<String, Coord> nodesMap = readNodes();
 
 		// Read links.csv
-		Map<String, ArrayList<JerusalemLink>> linksMap = readLinksCSV(INPUT_LINKS_CSV, REMOVE_CONNECTOR);
+		Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_CONNECTOR);
 
 		// Create the Jerusalem MATSim Network
 		Network jlmNet = createMATSimNet(nodesMap, linksMap);
@@ -57,59 +63,36 @@ public class CreateNetwork {
 	}
 
 	/**
-	 * Reads "nodes.csv" and write the nodes into a TreeMap "String, Coord".
+	 * Reads nodes table from db and write the nodes into a TreeMap "String, Coord".
 	 * <p>
-	 * CSV fields:
-	 * <li>[0] = "id" (int)
-	 * <li>[2] = "x" (double)
-	 * <li>[3] = "y" (double) <br>
+	 * nodes table fields:
+	 * <li>"i" - id (int)
+	 * <li>"x" - x coordinate (double)
+	 * <li>"y" - y coordinate (double) <br>
 	 * <br>
 	 * 
-	 * @param inputNodesCSV absolute path for "nodes.csv".
+	 * 
 	 * @return Map of "String, Coord"
 	 */
-	private static Map<String, Coord> readNodesCSV(String inputNodesCSV) {
-		log.info("Reading nodes.csv");
-
+	private static Map<String, Coord> readNodes() throws SQLException {
+		log.info("Reading nodes");
 		Map<String, Coord> nodesMap = new TreeMap();
-		BufferedReader br = null;
-		String line = "";
-		String cvsSplitBy = ",";
-
-		try {
-			br = new BufferedReader(new FileReader(inputNodesCSV));
-
-			// skip first line (header)
-			line = br.readLine();
-
-			while ((line = br.readLine()) != null) {
-				// use comma as separator
-				String[] lineArr = line.split(cvsSplitBy);
-				String nodeId = lineArr[0];
-				double nodeX = Double.parseDouble(lineArr[2]);
-				double nodeY = Double.parseDouble(lineArr[3]);
-
-				// write nodes to map Map<String, Coord>
-				nodesMap.put(nodeId, new Coord(nodeX, nodeY));
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (br != null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
+		Connection con = DriverManager.getConnection(url, user, password);
+		PreparedStatement pst = con.prepareStatement("SELECT * FROM nodes;");
+		ResultSet resultSet = pst.executeQuery();
+		while (resultSet.next()) {
+			String nodeId = resultSet.getString("i");
+			double nodeX = resultSet.getDouble("x");
+			double nodeY = resultSet.getDouble("y");
+			nodesMap.put(nodeId, new Coord(nodeX, nodeY));
 		}
+		log.info("Finished Reading nodes");
 		return nodesMap;
 	}
 
 	/**
-	 * Reads "links.csv" and write the links into a TreeMap "String, ArrayList"
+	 * Reads links table from db and write the links into a TreeMap "String,
+	 * ArrayList"
 	 * <p>
 	 * CSV fields = [i,j,length_met,mode,num_lanes,type,at,linkcap,s0link_m_per_s
 	 * <li>[0] = "i" (int) - id of <b>from</b> node.
@@ -150,68 +133,40 @@ public class CreateNetwork {
 	 * @param isConnector   remove connectors if true
 	 * @return Map "String, ArrayList<JerusalemLink"
 	 */
-	private static Map<String, ArrayList<JerusalemLink>> readLinksCSV(String inputLinksCSV, boolean isConnector) {
-		log.info("Reading links.csv");
-
-		// test commit
+	private static Map<String, ArrayList<JerusalemLink>> readLinks(boolean isConnector) throws SQLException {
+		log.info("Reading links");
 
 		Map<String, ArrayList<JerusalemLink>> LinksMap = new TreeMap();
-		BufferedReader br = null;
-		String line = "";
-		String cvsSplitBy = ",";
-
-		try {
-			br = new BufferedReader(new FileReader(inputLinksCSV));
-
-			// skip first line (header)
-			line = br.readLine();
-
-			while ((line = br.readLine()) != null) {
-				ArrayList<JerusalemLink> linkArr = new ArrayList<JerusalemLink>();
-				String id = "";
-
-				// use comma as separator
-				String[] lineArr = line.split(cvsSplitBy);
-
-				JerusalemLink jerusalemLink = new JerusalemLink(lineArr);
-
-				// remove connectors - road type 9
-				if (isConnector == true) {
-					if (!(jerusalemLink.getRoadType() == 9)) {
-						// add link elements to arrLink
-						linkArr.add(jerusalemLink);
-
-						// create id of link [fromId_toId_roadType]
-						id = jerusalemLink.getFromId() + "_" + jerusalemLink.getToId() + "_"
-								+ jerusalemLink.getRoadType();
-						LinksMap.put(id, linkArr);
-					}
-				}
-				// create all links
-				else {
-					log.info("add all links to JLM network");
-					// add link elements to arrLink
-					linkArr.add(jerusalemLink);
-
-					// create id of link [fromId_toId_roadType]
-					id = jerusalemLink.getFromId() + "_" + jerusalemLink.getToId() + "_" + jerusalemLink.getRoadType();
-					LinksMap.put(id, linkArr);
-
-				}
+		Connection con = DriverManager.getConnection(url, user, password);
+		PreparedStatement pst = con.prepareStatement("SELECT *, \"@linkcap\" as linkcap FROM links;");
+		ResultSet resultSet = pst.executeQuery();
+		while (resultSet.next()) {
+			if (resultSet.getDouble("type") == 9 && isConnector) {
+				continue;
 			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (br != null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+			ArrayList<JerusalemLink> linkArr = new ArrayList<JerusalemLink>();
+			JerusalemLink jerusalemLink = new JerusalemLink();
+			jerusalemLink.setFromId(resultSet.getInt("i"));
+			jerusalemLink.setToId(resultSet.getInt("j"));
+			jerusalemLink.setLength(resultSet.getDouble("length_met"));
+			jerusalemLink.setMode(JerusalemLink.parseMode(resultSet.getString("mode")));
+			System.out.print(resultSet.getString("mode") + "<*>");
+			if (!jerusalemLink.getMode().isEmpty()) {
+				System.out.println(jerusalemLink.getMode());
+			} else {
+				System.out.println("not parsed");
 			}
+
+			jerusalemLink.setLaneNum(resultSet.getDouble("num_lanes"));
+			jerusalemLink.setRoadType(resultSet.getDouble("type"));
+			jerusalemLink.setCapacity(resultSet.getDouble("linkcap"));
+			jerusalemLink.setFreeSpeed(resultSet.getDouble("s0link_m_per_s"));
+			String id = jerusalemLink.getFromId() + "_" + jerusalemLink.getToId() + "_"
+					+ (int) jerusalemLink.getRoadType();
+			linkArr.add(jerusalemLink);
+			LinksMap.put(id, linkArr);
 		}
+
 		return LinksMap;
 	}
 

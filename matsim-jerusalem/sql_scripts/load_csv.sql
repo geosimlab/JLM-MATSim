@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS bental_jtmt_code_conversion (
 );
 
 CREATE TABLE IF NOT EXISTS nodes(
-    i integer NOT NULL,
+    i varchar(6) NOT NULL,
     is_centroid varchar(6) NOT NULL,
     x double precision NOT NULL,
     y double precision NOT NULL,
