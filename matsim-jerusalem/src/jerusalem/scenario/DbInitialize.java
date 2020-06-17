@@ -1,4 +1,4 @@
-package jerusalem.scenario.population;
+package jerusalem.scenario;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -10,21 +10,12 @@ import java.util.Properties;
 public class DbInitialize {
 
 	// getting parameters for commands
-	private static Properties props = DbUtils.readProperties("database.properties");
+	public static Properties props = DbUtils.readProperties("database.properties");
 	public final static String username = props.getProperty("db.username");
 	public final static String password = props.getProperty("db.password");
 	public final static String db_url = props.getProperty("db.url");
 	public final static String port = props.getProperty("db.port");
 	public final static String db_name = props.getProperty("db.db_name");
-	public final static String trip_path = props.getProperty("db.trip_path");
-	public final static String person_path = props.getProperty("db.person_path");
-	public final static String household_path = props.getProperty("db.household_path");
-	public final static String nodes_path = props.getProperty("db.nodes_path");
-	public final static String links_path = props.getProperty("db.links_path");
-	public final static String bental_jtmt_code_conversion_path = props
-			.getProperty("db.bental_jtmt_code_conversion_path");
-	public final static String TAZShp_path = props.getProperty("db.input_taz_shp");
-	public final static String BLDGShp_path = props.getProperty("db.input_bldg_shp");
 	public final static String psql_path = props.getProperty("db.psql_path");
 	public final static String ogr2ogr_path = props.getProperty("db.ogr2ogr_path");
 	public final static String url = "jdbc:postgresql://" + db_url + ":" + port + "/" + db_name + "?loggerLevel=DEBUG";
@@ -38,43 +29,61 @@ public class DbInitialize {
 			+ "/sql_scripts/load_csv.sql\" postgresql://" + helperCommandEnd;
 
 	// psql command: copying the trips csv into db
-	private static String copyTrips = "psql -c \"\\copy trips FROM '" + trip_path
+	private static String copyTrips = "psql -c \"\\copy trips FROM '" + props.getProperty("db.trip_path")
 			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
 
 	// psql command: copying the persons csv into db
-	private static String copyPersons = "psql -c \"\\copy persons FROM '" + person_path
+	private static String copyPersons = "psql -c \"\\copy persons FROM '" + props.getProperty("db.person_path")
 			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
 
 	// psql command: copying the households csv into db
-	private static String copyHouseHolds = "psql -c \"\\copy households FROM '" + household_path
+	private static String copyHouseHolds = "psql -c \"\\copy households FROM '" + props.getProperty("db.household_path")
 			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
 
 	// psql command: copying the nodes csv into db
-	private static String copyNodes = "psql -c \"\\copy nodes (i,is_centroid,x,y) FROM '" + nodes_path
-			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+	private static String copyNodes = "psql -c \"\\copy nodes (i,is_centroid,x,y) FROM '"
+			+ props.getProperty("db.nodes_path") + "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
 
 	// psql command: copying the links csv into db
-	private static String copyLinks = "psql -c \"\\copy links FROM '" + links_path
+	private static String copyLinks = "psql -c \"\\copy links FROM '" + props.getProperty("db.links_path")
 			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
 
 	// psql command: copying the bental_jtmt_code_conversion csv into db
 	private static String copybental_jtmt_code_conversion = "psql -c \"\\copy bental_jtmt_code_conversion FROM '"
-			+ bental_jtmt_code_conversion_path + "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+			+ props.getProperty("db.bental_jtmt_code_conversion_path") + "' DELIMITER ',' CSV HEADER;\" postgresql://"
+			+ helperCommandEnd;
+
+	// psql command: copying the line_path csv into db
+	private static String copyLine_path = "psql -c \"\\copy line_path FROM '" + props.getProperty("db.line_path_path")
+			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+
+	// psql command: copying the lines csv into db
+	private static String copyLines = "psql -c \"\\copy lines FROM '" + props.getProperty("db.lines_path")
+			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+
+	// psql command: copying the headway csv into db
+	private static String copyHeadway = "psql -c \"\\copy headway FROM '" + props.getProperty("db.headway_path")
+			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+
+	// psql command: copying the vehicle_types csv into db
+	private static String copyVehicle_types = "psql -c \"\\copy vehicle_types FROM '"
+			+ props.getProperty("db.vehicle_types_path") + "' DELIMITER ',' CSV HEADER;\" postgresql://"
+			+ helperCommandEnd;
 
 	// psql command: copying the TAZShp into db
 	private static String copyTAZShp = "ogr2ogr -progress -overwrite -f \"PostgreSQL\" -a_srs \"EPSG:2039\" PG:\"host="
-			+ db_url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" " + TAZShp_path
-			+ " -nlt PROMOTE_TO_MULTI -lco geometry_name=geometry";
+			+ db_url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" "
+			+ props.getProperty("db.input_taz_shp") + " -nlt PROMOTE_TO_MULTI -lco geometry_name=geometry";
 
 	// psql command: copying the BLDGShp into db
 	private static String copyBLDGShp = "ogr2ogr -progress -overwrite -f \"PostgreSQL\" -a_srs \"EPSG:2039\" PG:\"host="
-			+ db_url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" " + BLDGShp_path
-			+ " BLDG -nlt PROMOTE_TO_MULTI -lco geometry_name=geometry";
+			+ db_url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" "
+			+ props.getProperty("db.input_bldg_shp") + " BLDG -nlt PROMOTE_TO_MULTI -lco geometry_name=geometry";
 
 	// psql command: copying the POI_BLDGshp into db
 	private static String copyBLDGPOIShp = "ogr2ogr -progress -overwrite -f \"PostgreSQL\" -a_srs \"EPSG:2039\" PG:\"host="
-			+ db_url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" " + BLDGShp_path
-			+ " POI_BLDG -nlt PROMOTE_TO_MULTI -lco geometry_name=geometry";
+			+ db_url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" "
+			+ props.getProperty("db.input_bldg_shp") + " POI_BLDG -nlt PROMOTE_TO_MULTI -lco geometry_name=geometry";
 
 	// psql command: referring to sql files (/sql_scirpts/cascade_rounding.sql) that
 	// creates an aggregate function that performs cascade rounding in sql
@@ -95,6 +104,11 @@ public class DbInitialize {
 			+ System.getProperty("user.dir").replace("\\", "/")
 			+ "/sql_scripts/create_other_activities_coordinates.sql\" postgresql://" + helperCommandEnd;
 
+	// psql command: referring to sql files
+	// (/sql_scirpts/create_stops.sql) that
+	// creates a table with pt stops
+	private static String create_stops = "psql -c \"\\i " + System.getProperty("user.dir").replace("\\", "/")
+			+ "/sql_scripts/stops.sql\" postgresql://" + helperCommandEnd;
 	// psql command: crating partial tables, creating indices with file
 	// (/sql_scirpts/wrapup.sql)
 	private static String wrapup = "psql -c \"\\i " + System.getProperty("user.dir").replace("\\", "/")
@@ -109,6 +123,10 @@ public class DbInitialize {
 		DbUtils.runCommand(copyHouseHolds, psql_path);
 		DbUtils.runCommand(copyNodes, psql_path);
 		DbUtils.runCommand(copyLinks, psql_path);
+		DbUtils.runCommand(copyLine_path, psql_path);
+		DbUtils.runCommand(copyLines, psql_path);
+		DbUtils.runCommand(copyHeadway, psql_path);
+		DbUtils.runCommand(copyVehicle_types, psql_path);
 		DbUtils.runCommand(copybental_jtmt_code_conversion, psql_path);
 		DbUtils.runCommand(copyTAZShp, ogr2ogr_path);
 		DbUtils.runCommand(copyBLDGShp, ogr2ogr_path);
@@ -117,5 +135,6 @@ public class DbInitialize {
 		DbUtils.runCommand(wrapup, psql_path);
 		DbUtils.runCommand(create_households_coordinates, psql_path);
 		DbUtils.runCommand(create_other_activities_coordinates, psql_path);
+		DbUtils.runCommand(create_stops, psql_path);
 	}
 }

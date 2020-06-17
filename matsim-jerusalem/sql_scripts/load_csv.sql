@@ -2,7 +2,8 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 SET search_path TO "$user", postgis, topology, public;
 DROP TABLE IF EXISTS trips, taz_centroid, persons,households, 
 households_final,taz600,bldg,poi_bldg ,inner_taz,bldg_cent,
-bental_households,bental_jtmt_code_conversion,nodes,links;
+bental_households,bental_jtmt_code_conversion,nodes,links,line_path,lines,headway,vehicle_types,
+households_in_polygon,households_final,trips_final,stops;
 CREATE TABLE IF NOT EXISTS trips(
 	uniqueid INT NOT NULL CHECK (uniqueid > 0),
 	jointTripNum INT NOT NULL CHECK (jointTripNum  >= 0),
@@ -141,4 +142,34 @@ CREATE TABLE IF NOT EXISTS links(
     "@at" double precision,
     "@linkcap" double precision,
     s0link_m_per_s double precision
+);
+
+CREATE TABLE IF NOT EXISTS line_path(
+    line varchar(7) NOT NULL,
+    i integer NOT NULL,
+    j integer NOT NULL,
+    length_met double precision NOT NULL,
+    seq_number integer NOT NULL,
+    stop integer NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS lines(
+    lines varchar(7) NOT NULL,
+    description varchar(100) NOT NULL,
+    transport_mode varchar(2) NOT NULL,
+    vehicle integer NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS headway(
+    line varchar(7) NOT NULL,
+    AM_period1_one double precision NOT NULL,
+    AM_period_two double precision NOT NULL,
+    AM_period_three double precision NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS vehicle_types(
+    vehicle_code integer NOT NULL,
+    vehicle_type varchar(100) NOT NULL,
+    board_coef double precision NOT NULL,
+    disembark_coef double precision NOT NULL
 );

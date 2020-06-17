@@ -34,7 +34,7 @@ alter table poi_bldg
 add column fake boolean DEFAULT FALSE;
 --stage 2: adding an altered nodes table into bldg_cent
 insert into bldg_cent(uniq_id,area,centroid,ftype,fake)
-select i + 100000000 as uniq_id, --fake uniq_id 
+select i::integer + 100000000 as uniq_id, --fake uniq_id 
 		1 as area, --fake area
 		geometry as centroid, 
 		11 as ftype,

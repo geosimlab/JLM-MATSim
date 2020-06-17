@@ -25,6 +25,8 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import jerusalem.scenario.DbInitialize;
+import jerusalem.scenario.DbUtils;
 import jerusalem.scenario.network.CreateNetwork;
 
 /**

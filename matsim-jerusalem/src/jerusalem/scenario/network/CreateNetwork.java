@@ -23,8 +23,8 @@ import org.matsim.core.network.algorithms.MultimodalNetworkCleaner;
 import org.matsim.core.network.algorithms.NetworkCleaner;
 import org.matsim.core.network.io.NetworkWriter;
 
-import jerusalem.scenario.population.DbInitialize;
-import jerusalem.scenario.population.DbUtils;
+import jerusalem.scenario.DbInitialize;
+import jerusalem.scenario.DbUtils;
 
 /**
  * @author Golan Ben-Dor
@@ -35,7 +35,25 @@ public class CreateNetwork {
 	private final static Properties props = DbUtils.readProperties("database.properties");
 	private final static String OUTPUT_NETWORK_FOLDER = props.getProperty("db.output_folder");
 	private final static String NETWORK_ID = "" + 6;
-	private final static boolean REMOVE_CONNECTOR = false;
+	private final static boolean REMOVE_CONNECTOR = true;
+
+	private Network NET;
+
+	public CreateNetwork() throws SQLException {
+		// Read nodes
+		Map<String, Coord> nodesMap = readNodes();
+
+		// Read links.csv
+		Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_CONNECTOR);
+
+		// Create the Jerusalem MATSim Network
+		Network jlmNet = createMATSimNet(nodesMap, linksMap);
+		this.NET = jlmNet;
+	}
+
+	public Network getJlmNet() {
+		return this.NET;
+	}
 
 	public static void main(String[] args) throws SQLException {
 		// Read nodes
