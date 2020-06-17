@@ -11,24 +11,26 @@ public class DbInitialize {
 
 	// getting parameters for commands
 	private static Properties props = DbUtils.readProperties("database.properties");
-	private static String username = props.getProperty("db.username");
-	private static String password = props.getProperty("db.password");
-	private static String url = props.getProperty("db.url");
-	private static String port = props.getProperty("db.port");
-	private static String db_name = props.getProperty("db.db_name");
-	private static String trip_path = props.getProperty("db.trip_path");
-	private static String person_path = props.getProperty("db.person_path");
-	private static String household_path = props.getProperty("db.household_path");
-	private static String nodes_path = props.getProperty("db.nodes_path");
-	private static String links_path = props.getProperty("db.links_path");
-	private static String bental_jtmt_code_conversion_path = props.getProperty("db.bental_jtmt_code_conversion_path");
-	private static String TAZShp_path = props.getProperty("db.input_taz_shp");
-	private static String BLDGShp_path = props.getProperty("db.input_bldg_shp");
-	private static String psql_path = props.getProperty("db.psql_path");
-	private static String ogr2ogr_path = props.getProperty("db.ogr2ogr_path");
+	public final static String username = props.getProperty("db.username");
+	public final static String password = props.getProperty("db.password");
+	public final static String db_url = props.getProperty("db.url");
+	public final static String port = props.getProperty("db.port");
+	public final static String db_name = props.getProperty("db.db_name");
+	public final static String trip_path = props.getProperty("db.trip_path");
+	public final static String person_path = props.getProperty("db.person_path");
+	public final static String household_path = props.getProperty("db.household_path");
+	public final static String nodes_path = props.getProperty("db.nodes_path");
+	public final static String links_path = props.getProperty("db.links_path");
+	public final static String bental_jtmt_code_conversion_path = props
+			.getProperty("db.bental_jtmt_code_conversion_path");
+	public final static String TAZShp_path = props.getProperty("db.input_taz_shp");
+	public final static String BLDGShp_path = props.getProperty("db.input_bldg_shp");
+	public final static String psql_path = props.getProperty("db.psql_path");
+	public final static String ogr2ogr_path = props.getProperty("db.ogr2ogr_path");
+	public final static String url = "jdbc:postgresql://" + db_url + ":" + port + "/" + db_name + "?loggerLevel=DEBUG";
 
 	// helper for psql commands - the end of a lot of commands is similar
-	private static String helperCommandEnd = username + ":" + password + "@" + url + ":" + port + "/" + db_name;
+	private static String helperCommandEnd = username + ":" + password + "@" + db_url + ":" + port + "/" + db_name;
 
 	// psql command: refering to sql file (/sql_scirpts/load_csv) that creates the
 	// db tables
@@ -61,17 +63,17 @@ public class DbInitialize {
 
 	// psql command: copying the TAZShp into db
 	private static String copyTAZShp = "ogr2ogr -progress -overwrite -f \"PostgreSQL\" -a_srs \"EPSG:2039\" PG:\"host="
-			+ url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" " + TAZShp_path
+			+ db_url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" " + TAZShp_path
 			+ " -nlt PROMOTE_TO_MULTI -lco geometry_name=geometry";
 
 	// psql command: copying the BLDGShp into db
 	private static String copyBLDGShp = "ogr2ogr -progress -overwrite -f \"PostgreSQL\" -a_srs \"EPSG:2039\" PG:\"host="
-			+ url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" " + BLDGShp_path
+			+ db_url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" " + BLDGShp_path
 			+ " BLDG -nlt PROMOTE_TO_MULTI -lco geometry_name=geometry";
 
 	// psql command: copying the POI_BLDGshp into db
 	private static String copyBLDGPOIShp = "ogr2ogr -progress -overwrite -f \"PostgreSQL\" -a_srs \"EPSG:2039\" PG:\"host="
-			+ url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" " + BLDGShp_path
+			+ db_url + " user=" + username + " dbname=" + db_name + " password=" + password + "\" " + BLDGShp_path
 			+ " POI_BLDG -nlt PROMOTE_TO_MULTI -lco geometry_name=geometry";
 
 	// psql command: referring to sql files (/sql_scirpts/cascade_rounding.sql) that

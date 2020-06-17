@@ -1,6 +1,5 @@
 package jerusalem.scenario.network;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -24,6 +23,7 @@ import org.matsim.core.network.algorithms.MultimodalNetworkCleaner;
 import org.matsim.core.network.algorithms.NetworkCleaner;
 import org.matsim.core.network.io.NetworkWriter;
 
+import jerusalem.scenario.population.DbInitialize;
 import jerusalem.scenario.population.DbUtils;
 
 /**
@@ -34,17 +34,10 @@ public class CreateNetwork {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
 	private final static String OUTPUT_NETWORK_FOLDER = props.getProperty("db.output_folder");
-	private final static String NETWORK_ID = "" + 5;
-	private static final String user = props.getProperty("db.username");
-	private static final String password = props.getProperty("db.password");
-	private static final String db_url = props.getProperty("db.url");
-	private static final String port = props.getProperty("db.port");
-	private static final String db_name = props.getProperty("db.db_name");
-	private static final String url = "jdbc:postgresql://" + db_url + ":" + port + "/" + db_name + "?loggerLevel=DEBUG";
+	private final static String NETWORK_ID = "" + 6;
+	private final static boolean REMOVE_CONNECTOR = false;
 
-	private final static boolean REMOVE_CONNECTOR = true;
-
-	public static void main(String[] args) throws IOException, SQLException {
+	public static void main(String[] args) throws SQLException {
 		// Read nodes
 		Map<String, Coord> nodesMap = readNodes();
 
@@ -77,7 +70,7 @@ public class CreateNetwork {
 	private static Map<String, Coord> readNodes() throws SQLException {
 		log.info("Reading nodes");
 		Map<String, Coord> nodesMap = new TreeMap();
-		Connection con = DriverManager.getConnection(url, user, password);
+		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		PreparedStatement pst = con.prepareStatement("SELECT * FROM nodes;");
 		ResultSet resultSet = pst.executeQuery();
 		while (resultSet.next()) {
@@ -94,11 +87,11 @@ public class CreateNetwork {
 	 * Reads links table from db and write the links into a TreeMap "String,
 	 * ArrayList"
 	 * <p>
-	 * CSV fields = [i,j,length_met,mode,num_lanes,type,at,linkcap,s0link_m_per_s
-	 * <li>[0] = "i" (int) - id of <b>from</b> node.
-	 * <li>[1] = "j" (int) - id of <b>to</b> node.
-	 * <li>[2] = "length_met" (double) - link <b>length</b> in meters.
-	 * <li>[3] = mode (String) - allowed <b>modes</b> on links:
+	 * table fields = [i,j,length_met,mode,num_lanes,type,linkcap,s0link_m_per_s
+	 * <li>"i" (int) - id of <b>from</b> node.
+	 * <li>"j" (int) - id of <b>to</b> node.
+	 * <li>"length_met" (double) - link <b>length</b> in meters.
+	 * <li>"mode" (String) - allowed <b>modes</b> on links:
 	 * <ul>
 	 * <li>c=car
 	 * <li>w=walk
@@ -123,21 +116,19 @@ public class CreateNetwork {
 	 * <li>66 = Busway
 	 * <li>77 = Rail
 	 * </ul>
-	 * <li>[6] "at" - not important
-	 * <li>[7] "linkcap" (double) - link <b>capacity</b>.
-	 * <li>[8] "s0link_m_per_s" - <b>freespeed</b> of links (m/s) from EMME
-	 * simulation (no congestion) <br>
+	 * <li>"linkcap" (double) - link <b>capacity</b>.
+	 * <li>"s0link_m_per_s" - <b>freespeed</b> of links (m/s) from EMME simulation
+	 * (no congestion) <br>
 	 * <br>
 	 * 
-	 * @param inputLinksCSV an absolute path for "links.csv"
-	 * @param isConnector   remove connectors if true
+	 * @param isConnector remove connectors if true
 	 * @return Map "String, ArrayList<JerusalemLink"
 	 */
 	private static Map<String, ArrayList<JerusalemLink>> readLinks(boolean isConnector) throws SQLException {
 		log.info("Reading links");
 
 		Map<String, ArrayList<JerusalemLink>> LinksMap = new TreeMap();
-		Connection con = DriverManager.getConnection(url, user, password);
+		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		PreparedStatement pst = con.prepareStatement("SELECT *, \"@linkcap\" as linkcap FROM links;");
 		ResultSet resultSet = pst.executeQuery();
 		while (resultSet.next()) {
@@ -150,16 +141,9 @@ public class CreateNetwork {
 			jerusalemLink.setToId(resultSet.getInt("j"));
 			jerusalemLink.setLength(resultSet.getDouble("length_met"));
 			jerusalemLink.setMode(JerusalemLink.parseMode(resultSet.getString("mode")));
-			System.out.print(resultSet.getString("mode") + "<*>");
-			if (!jerusalemLink.getMode().isEmpty()) {
-				System.out.println(jerusalemLink.getMode());
-			} else {
-				System.out.println("not parsed");
-			}
-
 			jerusalemLink.setLaneNum(resultSet.getDouble("num_lanes"));
 			jerusalemLink.setRoadType(resultSet.getDouble("type"));
-			jerusalemLink.setCapacity(resultSet.getDouble("linkcap"));
+			jerusalemLink.setCapacity((int) resultSet.getDouble("linkcap"));
 			jerusalemLink.setFreeSpeed(resultSet.getDouble("s0link_m_per_s"));
 			String id = jerusalemLink.getFromId() + "_" + jerusalemLink.getToId() + "_"
 					+ (int) jerusalemLink.getRoadType();

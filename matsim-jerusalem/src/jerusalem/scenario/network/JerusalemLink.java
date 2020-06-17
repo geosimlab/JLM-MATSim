@@ -10,7 +10,7 @@ public class JerusalemLink {
 	protected Set<String> mode;
 	protected double laneNum;
 	protected double roadType;
-	protected double capacity;
+	protected int capacity;
 	protected double freeSpeed;
 
 	public JerusalemLink() {
@@ -65,11 +65,11 @@ public class JerusalemLink {
 		this.roadType = d;
 	}
 
-	public double getCapacity() {
+	public int getCapacity() {
 		return capacity;
 	}
 
-	public void setCapacity(double capacity) {
+	public void setCapacity(int capacity) {
 		this.capacity = capacity;
 	}
 

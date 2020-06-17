@@ -34,13 +34,7 @@ public class PopCreator {
 
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private static final Properties props = DbUtils.readProperties("database.properties");
-	private static final String user = props.getProperty("db.username");
-	private static final String password = props.getProperty("db.password");
-	private static final String db_url = props.getProperty("db.url");
-	private static final String port = props.getProperty("db.port");
-	private static final String db_name = props.getProperty("db.db_name");
 	private static final String OUTPUT_POPULATION_XML = props.getProperty("db.output_population_xml_path");
-	private static final String url = "jdbc:postgresql://" + db_url + ":" + port + "/" + db_name + "?loggerLevel=DEBUG";
 	private static final String pathQuery = "./sql_scripts/pop_query.sql";
 	private static Scenario sc;
 	private static Population population;
@@ -69,7 +63,7 @@ public class PopCreator {
 	 * @param path
 	 * @return
 	 */
-	public static String readQueryFile(String path) {
+	private static String readQueryFile(String path) {
 		log.info("reading pop_query.sql");
 		BufferedReader br = null;
 		String query = "";
@@ -107,8 +101,8 @@ public class PopCreator {
 	 * @param query
 	 * @throws SQLException
 	 */
-	public static void readPopulation(String query) throws SQLException {
-		Connection con = DriverManager.getConnection(url, user, password);
+	private static void readPopulation(String query) throws SQLException {
+		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		con.setAutoCommit(false);
 		PreparedStatement pst = con.prepareStatement(query);
 		pst.setFetchSize(50000);
@@ -134,7 +128,7 @@ public class PopCreator {
 	/**
 	 * Method to initialize population generator
 	 */
-	public static void initialPopulationSetup() {
+	private static void initialPopulationSetup() {
 		sc = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		population = sc.getPopulation();
 		populationFactory = population.getFactory();
@@ -147,7 +141,7 @@ public class PopCreator {
 	 * @param resultSet
 	 * @throws SQLException
 	 */
-	public static void createAgent(ResultSet resultSet) throws SQLException {
+	private static void createAgent(ResultSet resultSet) throws SQLException {
 		// TODO add agents attributes - think about more attributes
 		String agentId = resultSet.getString("hhid") + "-" + resultSet.getString("pnum");
 		person = populationFactory.createPerson(Id.create(agentId, Person.class));
@@ -169,7 +163,7 @@ public class PopCreator {
 	 * @param resultSet
 	 * @throws SQLException
 	 */
-	public static void addActivityAndLeg(ResultSet resultSet) throws SQLException {
+	private static void addActivityAndLeg(ResultSet resultSet) throws SQLException {
 
 		// when agent only stays at home
 		if (resultSet.getInt("personTripNum") == 0) {
@@ -184,7 +178,7 @@ public class PopCreator {
 			resultSet.getDouble("actX");
 			if (!resultSet.wasNull()) {
 				origCoordinates = new Coord(resultSet.getDouble("actX"), resultSet.getDouble("actY"));
-			} else if (actType == "home") {
+			} else if (actType.equals("home")) {
 				origCoordinates = new Coord(resultSet.getDouble("homeX"), resultSet.getDouble("homeY"));
 			} else {
 				origCoordinates = new Coord(resultSet.getDouble("origX"), resultSet.getDouble("origY"));
