@@ -3,7 +3,7 @@ SET search_path TO "$user", postgis, topology, public;
 DROP TABLE IF EXISTS trips, taz_centroid, persons,households, 
 households_final,taz600,bldg,poi_bldg ,inner_taz,bldg_cent,
 bental_households,bental_jtmt_code_conversion,nodes,links,line_path,lines,headway,vehicle_types,
-households_in_polygon,households_final,trips_final,stops;
+households_in_polygon,households_final,trips_final,stops,pt_routes;
 CREATE TABLE IF NOT EXISTS trips(
 	uniqueid INT NOT NULL CHECK (uniqueid > 0),
 	jointTripNum INT NOT NULL CHECK (jointTripNum  >= 0),

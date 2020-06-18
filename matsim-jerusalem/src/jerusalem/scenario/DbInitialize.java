@@ -109,6 +109,13 @@ public class DbInitialize {
 	// creates a table with pt stops
 	private static String create_stops = "psql -c \"\\i " + System.getProperty("user.dir").replace("\\", "/")
 			+ "/sql_scripts/stops.sql\" postgresql://" + helperCommandEnd;
+
+	// psql command: referring to sql files
+	// (/sql_scirpts/create_pt_routes.sql) that
+	// creates a table with routes of pt lines
+	private static String create_pt_routes = "psql -c \"\\i " + System.getProperty("user.dir").replace("\\", "/")
+			+ "/sql_scripts/pt_routes.sql\" postgresql://" + helperCommandEnd;
+
 	// psql command: crating partial tables, creating indices with file
 	// (/sql_scirpts/wrapup.sql)
 	private static String wrapup = "psql -c \"\\i " + System.getProperty("user.dir").replace("\\", "/")
@@ -136,5 +143,6 @@ public class DbInitialize {
 		DbUtils.runCommand(create_households_coordinates, psql_path);
 		DbUtils.runCommand(create_other_activities_coordinates, psql_path);
 		DbUtils.runCommand(create_stops, psql_path);
+		DbUtils.runCommand(create_pt_routes, psql_path);
 	}
 }

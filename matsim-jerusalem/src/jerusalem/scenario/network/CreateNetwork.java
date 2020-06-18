@@ -39,16 +39,22 @@ public class CreateNetwork {
 
 	private Network NET;
 
-	public CreateNetwork() throws SQLException {
+	public CreateNetwork() {
 		// Read nodes
-		Map<String, Coord> nodesMap = readNodes();
+		Map<String, Coord> nodesMap;
+		try {
+			nodesMap = readNodes();
+			// Read links.csv
+			Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_CONNECTOR);
 
-		// Read links.csv
-		Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_CONNECTOR);
+			// Create the Jerusalem MATSim Network
+			Network jlmNet = createMATSimNet(nodesMap, linksMap);
+			this.NET = jlmNet;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-		// Create the Jerusalem MATSim Network
-		Network jlmNet = createMATSimNet(nodesMap, linksMap);
-		this.NET = jlmNet;
 	}
 
 	public Network getJlmNet() {
