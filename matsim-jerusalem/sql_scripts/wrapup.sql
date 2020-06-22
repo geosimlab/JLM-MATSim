@@ -35,7 +35,7 @@ add column fake boolean DEFAULT FALSE;
 --stage 2: adding an altered nodes table into bldg_cent
 insert into bldg_cent(uniq_id,area,centroid,ftype,fake)
 select i::integer + 100000000 as uniq_id, --fake uniq_id 
-		1 as area, --fake area
+		0 as area, --fake area
 		geometry as centroid, 
 		11 as ftype,
 		TRUE as fake
@@ -56,13 +56,12 @@ where fake;
 
 
 --query to load links to network
---(SELECT row_number() over () AS _uid_,* FROM (with f as (select *, st_translate(geometry,-70,-50) geom from nodes)
- --select l.i,fa.geom geoma,l.j,fb.geom geomb, st_makeline(fa.geom,fb.geom) linea, st_makeline(fa.geometry,fb.geometry) lineb, l.mode
- --from links l
- --left join f fa
- --on l.i = fa.i
- --left join f fb
- --on l.j = fb.i ) AS _subq_1_ )
+--select l.i,fa.geometry geoma,l.j,fb.geometry geomb, st_makeline(fa.geometry,fb.geometry) line, l.mode, l.length_met
+--from links l
+--left join nodes fa
+--on l.i = fa.i::integer
+--left join nodes fb
+--on l.j = fb.i::integer
  
  --creating indices
 CREATE INDEX idx_hhid_t ON trips(hhid);

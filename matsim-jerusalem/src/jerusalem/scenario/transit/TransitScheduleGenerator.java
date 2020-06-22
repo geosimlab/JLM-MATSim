@@ -36,7 +36,6 @@ public class TransitScheduleGenerator {
 	private static TransitSchedule createStops(TransitSchedule transitSchedule) throws SQLException {
 		log.info("Creating Stops");
 		TransitScheduleFactory builder = transitSchedule.getFactory();
-//		Network network = new CreateNetwork().getJlmNet();
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		PreparedStatement pst = con.prepareStatement("SELECT * FROM stops;");
 		ResultSet resultSet = pst.executeQuery();
@@ -47,7 +46,6 @@ public class TransitScheduleGenerator {
 
 			stop.setName(resultSet.getString("linkid"));
 			stop.setLinkId(Id.createLinkId(resultSet.getString("linkid")));
-//			System.out.println(stop.toString());
 			transitSchedule.addStopFacility(stop);
 		}
 		con.close();
@@ -61,6 +59,7 @@ public class TransitScheduleGenerator {
 		List<TransitRouteStop> stops = new ArrayList<>();
 		List<Id<Link>> linkIDs = new ArrayList<Id<Link>>();
 		Id<Link> startLinkId = null;
+		double passing_time = 0;
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		PreparedStatement pst = con.prepareStatement("SELECT * FROM pt_routes;");
 		ResultSet resultSet = pst.executeQuery();
@@ -78,7 +77,8 @@ public class TransitScheduleGenerator {
 //				adding a stop on link, if stop exists
 				Id<TransitStopFacility> stopId = Id.create(resultSet.getString("linkid"), TransitStopFacility.class);
 				TransitStopFacility stop = transitSchedule.getFacilities().get(stopId);
-				TransitRouteStop routeStop = builder.createTransitRouteStop(stop, 0, 0);
+				TransitRouteStop routeStop = builder.createTransitRouteStop(stop, passing_time, passing_time);
+				passing_time = passing_time + resultSet.getDouble("passing_time");
 				stops.add(routeStop);
 			}
 			if (resultSet.getInt("seq_number") == resultSet.getInt("last_link")) {
@@ -87,13 +87,14 @@ public class TransitScheduleGenerator {
 				NetworkRoute networkRoute = (NetworkRoute) routeFactory.createRoute(startLinkId, endLinkId);
 				networkRoute.setLinkIds(startLinkId, linkIDs, endLinkId);
 //				creating line route and stops
-//				TODO switch transport mode for bus, train or light rail. decide whether here or in sql
 				Id<TransitRoute> routeId = Id.create(resultSet.getString("line"), TransitRoute.class);
 				TransitRoute transitRoute = builder.createTransitRoute(routeId, networkRoute, stops,
-						resultSet.getString("transport_mode"));
+						resultSet.getString("transport_mode_string"));
 
 //				creating line
-				Id<TransitLine> transitLineId = Id.create(resultSet.getString("line"), TransitLine.class);
+//				TODO change to description
+				Id<TransitLine> transitLineId = Id.create(
+						resultSet.getString("description") + "_" + resultSet.getString("line"), TransitLine.class);
 				TransitLine transitLine = builder.createTransitLine(transitLineId);
 				transitLine.addRoute(transitRoute);
 //				adding line to schedule
@@ -101,6 +102,7 @@ public class TransitScheduleGenerator {
 //				reseting stops and linkids for next line
 				stops = new ArrayList<>();
 				linkIDs = new ArrayList<Id<Link>>();
+				passing_time = 0;
 			}
 
 		}

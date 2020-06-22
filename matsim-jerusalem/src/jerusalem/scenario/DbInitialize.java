@@ -108,13 +108,13 @@ public class DbInitialize {
 	// (/sql_scirpts/create_stops.sql) that
 	// creates a table with pt stops
 	private static String create_stops = "psql -c \"\\i " + System.getProperty("user.dir").replace("\\", "/")
-			+ "/sql_scripts/stops.sql\" postgresql://" + helperCommandEnd;
+			+ "/sql_scripts/create_stops.sql\" postgresql://" + helperCommandEnd;
 
 	// psql command: referring to sql files
 	// (/sql_scirpts/create_pt_routes.sql) that
 	// creates a table with routes of pt lines
 	private static String create_pt_routes = "psql -c \"\\i " + System.getProperty("user.dir").replace("\\", "/")
-			+ "/sql_scripts/pt_routes.sql\" postgresql://" + helperCommandEnd;
+			+ "/sql_scripts/create_pt_routes.sql\" postgresql://" + helperCommandEnd;
 
 	// psql command: crating partial tables, creating indices with file
 	// (/sql_scirpts/wrapup.sql)
