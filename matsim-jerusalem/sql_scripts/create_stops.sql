@@ -7,7 +7,7 @@ with unique_links as(
 select row_number() over(), 
 concat(unique_links.i,'_',unique_links.j,'_',links.type) as linkid,
 st_x(nodes.geometry) as x,
-st_x(nodes.geometry) as y
+st_y(nodes.geometry) as y
 from unique_links
 Left join links
 on unique_links.i = links.i and unique_links.j = links.j

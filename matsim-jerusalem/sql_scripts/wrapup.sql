@@ -1,6 +1,9 @@
 --adding a geometry column to nodes, while offseting nodes by 70 meters west and 50 meters south
 update nodes
 set geometry = ST_translate(ST_SetSRID(ST_Point(x, y), 2039),-70,-50);
+update nodes
+set x = st_x(geometry),
+	y = st_y(geometry); 
 --creating a table for taz centroids - might by redundant
 CREATE TABLE IF NOT EXISTS taz_centroid AS 
 	SELECT taz::integer,

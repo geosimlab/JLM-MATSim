@@ -34,7 +34,7 @@ public class CreateNetwork {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
 	private final static String OUTPUT_NETWORK_FOLDER = props.getProperty("db.output_folder");
-	private final static String NETWORK_ID = "" + 6;
+	private final static String NETWORK_ID = "" + 7;
 	private final static boolean REMOVE_CONNECTOR = true;
 
 	private Network NET;

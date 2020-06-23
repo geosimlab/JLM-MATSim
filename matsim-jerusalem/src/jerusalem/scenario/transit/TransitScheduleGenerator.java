@@ -162,6 +162,7 @@ public class TransitScheduleGenerator {
 			int headway_sec = (int) (60 * resultSet.getDouble("headway"));
 			int iters = (int) ((lastDepartureTime - firstDepartureTime) / headway_sec);
 			for (int i = 0; i < iters; i++) {
+//				TODO relate to last trip in every period
 				String id = lineNo + "_" + TransitUtils.strFromSec(firstDepartureTime + i * headway_sec);
 				log.info("Creating departure: " + id);
 				Id<Vehicle> vehicleId = Id.create(id, Vehicle.class);
