@@ -18,6 +18,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.routes.LinkNetworkRouteFactory;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitRouteStop;
@@ -25,6 +26,12 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
 import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.vehicles.MatsimVehicleWriter;
+import org.matsim.vehicles.Vehicle;
+import org.matsim.vehicles.VehicleCapacity;
+import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.VehicleUtils;
+import org.matsim.vehicles.Vehicles;
 
 import jerusalem.scenario.DbInitialize;
 import jerusalem.scenario.DbUtils;
@@ -33,7 +40,7 @@ public class TransitScheduleGenerator {
 	private static final Logger log = Logger.getLogger(TransitScheduleGenerator.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
 
-	private static TransitSchedule createStops(TransitSchedule transitSchedule) throws SQLException {
+	public static TransitSchedule createStops(TransitSchedule transitSchedule) throws SQLException {
 		log.info("Creating Stops");
 		TransitScheduleFactory builder = transitSchedule.getFactory();
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
@@ -52,7 +59,7 @@ public class TransitScheduleGenerator {
 		return transitSchedule;
 	}
 
-	private static TransitSchedule createTransitLines(TransitSchedule transitSchedule) throws SQLException {
+	public static TransitSchedule createTransitLines(TransitSchedule transitSchedule) throws SQLException {
 		log.info("Creating Transit Lines");
 		TransitScheduleFactory builder = transitSchedule.getFactory();
 		LinkNetworkRouteFactory routeFactory = new LinkNetworkRouteFactory();
@@ -92,7 +99,6 @@ public class TransitScheduleGenerator {
 						resultSet.getString("transport_mode_string"));
 
 //				creating line
-//				TODO change to description
 				Id<TransitLine> transitLineId = Id.create(
 						resultSet.getString("description") + "_" + resultSet.getString("line"), TransitLine.class);
 				TransitLine transitLine = builder.createTransitLine(transitLineId);
@@ -110,11 +116,86 @@ public class TransitScheduleGenerator {
 		return transitSchedule;
 	}
 
+	public static Vehicles createVehicleTypes() throws SQLException {
+		log.info("Creating Vehicle types");
+		Vehicles veh = VehicleUtils.createVehiclesContainer();
+		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
+		PreparedStatement pst = con.prepareStatement("SELECT * FROM vehicle_types;");
+		ResultSet resultSet = pst.executeQuery();
+		while (resultSet.next()) {
+			Id<VehicleType> vehTypeId = Id.create(resultSet.getString("vehicle_type"), VehicleType.class);
+			VehicleType type = veh.getFactory().createVehicleType(vehTypeId);
+			VehicleCapacity cap = type.getCapacity();
+//			TODO add columns with data about vehicles to vehicle_types table
+			cap.setSeats(50);
+//			cap.setStandingRoom(standingRoom);
+//			type.setLength(length);
+//			VehicleUtils.setDoorOperationMode(type, doorOperationMode);
+
+//			type.setMaximumVelocity(maxVelocity);
+//			type.setPcuEquivalents(pcu);
+
+			veh.addVehicleType(type);
+			System.out.println(type.getId());
+		}
+		return veh;
+	}
+
+	public static ArrayList<Object> createVehiclesAndDepartures(TransitSchedule transitSchedule, Vehicles vehicles)
+			throws SQLException {
+		log.info("Creating Vehicles and departures");
+		TransitScheduleFactory builder = transitSchedule.getFactory();
+		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
+		PreparedStatement pst = con.prepareStatement("SELECT * FROM readable_headway;");
+		ResultSet resultSet = pst.executeQuery();
+		while (resultSet.next()) {
+			String lineNo = resultSet.getString("line");
+			log.info("*******************************************");
+			log.info("Creating Vehicles and departures for lineNo" + lineNo);
+			Id<TransitLine> line = Id.create(resultSet.getString("description") + "_" + resultSet.getString("line"),
+					TransitLine.class);
+			TransitLine transitline = transitSchedule.getTransitLines().get(line);
+			Id<TransitRoute> route = Id.create(resultSet.getString("line"), TransitRoute.class);
+			TransitRoute transitroute = transitline.getRoutes().get(route);
+			int firstDepartureTime = TransitUtils.secFromStr(resultSet.getString("start_time"));
+			int lastDepartureTime = TransitUtils.secFromStr(resultSet.getString("end_time"));
+			int headway_sec = (int) (60 * resultSet.getDouble("headway"));
+			int iters = (int) ((lastDepartureTime - firstDepartureTime) / headway_sec);
+			for (int i = 0; i < iters; i++) {
+				String id = lineNo + "_" + TransitUtils.strFromSec(firstDepartureTime + i * headway_sec);
+				log.info("Creating departure: " + id);
+				Id<Vehicle> vehicleId = Id.create(id, Vehicle.class);
+				Id<VehicleType> vehTypeId = Id.create(resultSet.getString("vehicle_type"), VehicleType.class);
+				Vehicle vehicle = vehicles.getFactory().createVehicle(vehicleId,
+						vehicles.getVehicleTypes().get(vehTypeId));
+				vehicles.addVehicle(vehicle);
+				Id<Departure> departureId = Id.create(id, Departure.class);
+				Departure firstDeparture = builder.createDeparture(departureId, firstDepartureTime + i * headway_sec);
+				firstDeparture.setVehicleId(vehicleId);
+				transitroute.addDeparture(firstDeparture);
+			}
+
+		}
+		ArrayList<Object> result = new ArrayList<Object>();
+		result.add(transitSchedule);
+		result.add(vehicles);
+		return result;
+
+	}
+
 	public static void main(String[] args) throws SQLException {
 		Scenario sc = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		TransitSchedule transitSchedule = sc.getTransitSchedule();
-		TransitSchedule result = createStops(transitSchedule);
-		result = createTransitLines(transitSchedule);
-		new TransitScheduleWriter(result).writeFile(props.getProperty("db.output_folder") + "transitschedule1.xml");
+		TransitSchedule transitResult = createStops(transitSchedule);
+		transitResult = createTransitLines(transitSchedule);
+		Vehicles vehiclesResult = createVehicleTypes();
+		ArrayList<Object> temp = createVehiclesAndDepartures(transitResult, vehiclesResult);
+		transitResult = (TransitSchedule) temp.get(0);
+		vehiclesResult = (Vehicles) temp.get(1);
+		new TransitScheduleWriter(transitResult)
+				.writeFile(props.getProperty("db.output_folder") + "transitschedule1.xml");
+
+		new MatsimVehicleWriter(vehiclesResult).writeFile(props.getProperty("db.output_folder") + "vehicles1.xml");
+//		
 	}
 }

@@ -65,6 +65,11 @@ public class DbInitialize {
 	private static String copyHeadway = "psql -c \"\\copy headway FROM '" + props.getProperty("db.headway_path")
 			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
 
+	// psql command: copying the headway csv into db
+	private static String copyHeadway_periods = "psql -c \"\\copy headway_periods FROM '"
+			+ props.getProperty("db.headway_periods_path") + "' DELIMITER ',' CSV HEADER;\" postgresql://"
+			+ helperCommandEnd;
+
 	// psql command: copying the vehicle_types csv into db
 	private static String copyVehicle_types = "psql -c \"\\copy vehicle_types FROM '"
 			+ props.getProperty("db.vehicle_types_path") + "' DELIMITER ',' CSV HEADER;\" postgresql://"
@@ -116,6 +121,12 @@ public class DbInitialize {
 	private static String create_pt_routes = "psql -c \"\\i " + System.getProperty("user.dir").replace("\\", "/")
 			+ "/sql_scripts/create_pt_routes.sql\" postgresql://" + helperCommandEnd;
 
+	// psql command: referring to sql files
+	// (/sql_scirpts/create_readable_headway.sql) that
+	// creates a table with readable headway of pt lines
+	private static String create_readable_headway = "psql -c \"\\i " + System.getProperty("user.dir").replace("\\", "/")
+			+ "/sql_scripts/create_readable_headway.sql\" postgresql://" + helperCommandEnd;
+
 	// psql command: crating partial tables, creating indices with file
 	// (/sql_scirpts/wrapup.sql)
 	private static String wrapup = "psql -c \"\\i " + System.getProperty("user.dir").replace("\\", "/")
@@ -123,7 +134,7 @@ public class DbInitialize {
 
 	public static void main(String[] args) throws IOException {
 
-		// running psql commands
+		// running psql commands - loading tables
 		DbUtils.runCommand(loadTables, psql_path);
 		DbUtils.runCommand(copyTrips, psql_path);
 		DbUtils.runCommand(copyPersons, psql_path);
@@ -133,16 +144,22 @@ public class DbInitialize {
 		DbUtils.runCommand(copyLine_path, psql_path);
 		DbUtils.runCommand(copyLines, psql_path);
 		DbUtils.runCommand(copyHeadway, psql_path);
+		DbUtils.runCommand(copyHeadway_periods, psql_path);
 		DbUtils.runCommand(copyVehicle_types, psql_path);
 		DbUtils.runCommand(copybental_jtmt_code_conversion, psql_path);
+//		loading spatial tables
 		DbUtils.runCommand(copyTAZShp, ogr2ogr_path);
 		DbUtils.runCommand(copyBLDGShp, ogr2ogr_path);
 		DbUtils.runCommand(copyBLDGPOIShp, ogr2ogr_path);
+//		creating custom functions
 		DbUtils.runCommand(cascade_rounding, psql_path);
+//		polish-up
 		DbUtils.runCommand(wrapup, psql_path);
+//		prepare data for model
 		DbUtils.runCommand(create_households_coordinates, psql_path);
 		DbUtils.runCommand(create_other_activities_coordinates, psql_path);
 		DbUtils.runCommand(create_stops, psql_path);
 		DbUtils.runCommand(create_pt_routes, psql_path);
+		DbUtils.runCommand(create_readable_headway, psql_path);
 	}
 }

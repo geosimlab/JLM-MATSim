@@ -2,8 +2,8 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 SET search_path TO "$user", postgis, topology, public;
 DROP TABLE IF EXISTS trips, taz_centroid, persons,households, 
 households_final,taz600,bldg,poi_bldg ,inner_taz,bldg_cent,
-bental_households,bental_jtmt_code_conversion,nodes,links,line_path,lines,headway,vehicle_types,
-households_in_polygon,households_final,trips_final,stops,pt_routes;
+bental_households,bental_jtmt_code_conversion,nodes,links,line_path,lines,headway,headway_periods,
+vehicle_types,households_in_polygon,households_final,trips_final,stops,pt_routes;
 CREATE TABLE IF NOT EXISTS trips(
 	uniqueid INT NOT NULL CHECK (uniqueid > 0),
 	jointTripNum INT NOT NULL CHECK (jointTripNum  >= 0),
@@ -162,9 +162,22 @@ CREATE TABLE IF NOT EXISTS lines(
 
 CREATE TABLE IF NOT EXISTS headway(
     line varchar(7) NOT NULL,
-    AM_period1_one double precision NOT NULL,
-    AM_period_two double precision NOT NULL,
-    AM_period_three double precision NOT NULL
+    first_period double precision NOT NULL,
+    second_period double precision NOT NULL,
+    third_period double precision NOT NULL,
+    fourth_period double precision NOT NULL,
+    fifth_period double precision NOT NULL,
+    sixth_period double precision NOT NULL,
+    seventh_period double precision NOT NULL,
+    eighth_period double precision NOT NULL,
+    ninth_period double precision NOT NULL,
+    tenth_period double precision NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS headway_periods(
+	headway_period varchar(20) not null,
+	start_time varchar(20) not null,
+	end_time varchar(20) not null
 );
 
 CREATE TABLE IF NOT EXISTS vehicle_types(

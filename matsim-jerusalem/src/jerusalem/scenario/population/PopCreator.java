@@ -65,6 +65,7 @@ public class PopCreator {
 	 * @param path
 	 * @return
 	 */
+//	get rid of this function, move query to sql view/table
 	private static String readQueryFile(String path) {
 		log.info("reading pop_query.sql");
 		BufferedReader br = null;
