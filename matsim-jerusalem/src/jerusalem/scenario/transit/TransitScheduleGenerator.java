@@ -36,6 +36,9 @@ import org.matsim.vehicles.Vehicles;
 import jerusalem.scenario.DbInitialize;
 import jerusalem.scenario.DbUtils;
 
+/**
+ * @author Ido Klein
+ */
 public class TransitScheduleGenerator {
 	private static final Logger log = Logger.getLogger(TransitScheduleGenerator.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
@@ -194,9 +197,9 @@ public class TransitScheduleGenerator {
 		transitResult = (TransitSchedule) temp.get(0);
 		vehiclesResult = (Vehicles) temp.get(1);
 		new TransitScheduleWriter(transitResult)
-				.writeFile(props.getProperty("db.output_folder") + "transitschedule1.xml");
+				.writeFile(props.getProperty("folder.output_folder") + "transitschedule1.xml");
 
-		new MatsimVehicleWriter(vehiclesResult).writeFile(props.getProperty("db.output_folder") + "vehicles1.xml");
+		new MatsimVehicleWriter(vehiclesResult).writeFile(props.getProperty("folder.output_folder") + "vehicles1.xml");
 //		
 	}
 }

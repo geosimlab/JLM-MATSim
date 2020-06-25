@@ -33,25 +33,26 @@ public class CreateNetwork {
 	// Logger
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
-	private final static String OUTPUT_NETWORK_FOLDER = props.getProperty("db.output_folder");
 	private final static String NETWORK_ID = "" + 7;
+	public final static String NETWORK_OUTPUT_PATH = props.getProperty("folder.output_folder") + NETWORK_ID
+			+ ".network.xml.gz";
 	private final static boolean REMOVE_CONNECTOR = true;
 
 	private Network NET;
 
+//	TODO unless we use objects as inputs, this is unnecessary
 	public CreateNetwork() {
-		// Read nodes
+
 		Map<String, Coord> nodesMap;
 		try {
+			// Read nodes
 			nodesMap = readNodes();
-			// Read links.csv
+			// Read links
 			Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_CONNECTOR);
-
 			// Create the Jerusalem MATSim Network
 			Network jlmNet = createMATSimNet(nodesMap, linksMap);
 			this.NET = jlmNet;
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -65,7 +66,7 @@ public class CreateNetwork {
 		// Read nodes
 		Map<String, Coord> nodesMap = readNodes();
 
-		// Read links.csv
+		// Read links
 		Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_CONNECTOR);
 
 		// Create the Jerusalem MATSim Network
@@ -76,7 +77,7 @@ public class CreateNetwork {
 		jerusalemNetworkCleaner(jlmNet);
 
 		// Write network
-		new NetworkWriter(jlmNet).write(OUTPUT_NETWORK_FOLDER + NETWORK_ID + ".network_2015.xml");
+		new NetworkWriter(jlmNet).write(NETWORK_OUTPUT_PATH);
 	}
 
 	/**
@@ -160,15 +161,37 @@ public class CreateNetwork {
 				continue;
 			}
 			ArrayList<JerusalemLink> linkArr = new ArrayList<JerusalemLink>();
+			String mode = resultSet.getString("mode");
+			double num_lanes = resultSet.getDouble("num_lanes");
 			JerusalemLink jerusalemLink = new JerusalemLink();
 			jerusalemLink.setFromId(resultSet.getInt("i"));
 			jerusalemLink.setToId(resultSet.getInt("j"));
 			jerusalemLink.setLength(resultSet.getDouble("length_met"));
-			jerusalemLink.setMode(JerusalemLink.parseMode(resultSet.getString("mode")));
-			jerusalemLink.setLaneNum(resultSet.getDouble("num_lanes"));
+			jerusalemLink.setMode(JerusalemLink.parseMode(mode));
+
+			if (num_lanes == 0) {
+
+				jerusalemLink.setLaneNum(1);
+				System.out.println(jerusalemLink.getLaneNum());
+			} else {
+				jerusalemLink.setLaneNum(num_lanes);
+			}
 			jerusalemLink.setRoadType(resultSet.getDouble("type"));
-			jerusalemLink.setCapacity((int) resultSet.getDouble("linkcap"));
-			jerusalemLink.setFreeSpeed(resultSet.getDouble("s0link_m_per_s"));
+//			fixing links with capacity = 0, speed = 0
+			if (mode.equals("[Mode(b), Mode(w)]") | mode.equals("[Mode(b)]") | mode.equals("[Mode(l)]")) {
+				jerusalemLink.setCapacity(5000);
+				jerusalemLink.setFreeSpeed(8.333333333);
+			} else if (mode.equals("[Mode(r)]")) {
+				jerusalemLink.setCapacity(5000);
+				jerusalemLink.setFreeSpeed(16.66666667);
+			} else if (mode.equals("[Mode(w)]")) {
+				jerusalemLink.setCapacity(500);
+				jerusalemLink.setFreeSpeed(1.39);
+			} else {
+				jerusalemLink.setCapacity((int) resultSet.getDouble("linkcap"));
+				jerusalemLink.setFreeSpeed(resultSet.getDouble("s0link_m_per_s"));
+			}
+
 			String id = jerusalemLink.getFromId() + "_" + jerusalemLink.getToId() + "_"
 					+ (int) jerusalemLink.getRoadType();
 			linkArr.add(jerusalemLink);
@@ -293,9 +316,7 @@ public class CreateNetwork {
 		multiModalNetClean.run(setModeWalk, setModeTrain);
 		multiModalNetClean.run(setModeWalk, setModeBus);
 		multiModalNetClean.run(setModeWalk, setModeLrt);
+		multiModalNetClean.run(setModeCar, setModeLrt);
 		multiModalNetClean.run(setModeBus, setModeCar);
-		multiModalNetClean.run(setModeLrt, setModeCar);
-		multiModalNetClean.run(setModeLrt, setModeWalk);
-
 	}
 }

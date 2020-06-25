@@ -1,5 +1,8 @@
 package jerusalem.scenario.transit;
 
+/**
+ * @author Ido Klein
+ */
 public class TransitUtils {
 	/*
 	 * Copyright 2015, 2016 Gunnar Flötteröd

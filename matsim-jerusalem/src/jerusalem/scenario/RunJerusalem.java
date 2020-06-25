@@ -19,15 +19,16 @@ import org.matsim.core.controler.OutputDirectoryHierarchy.OverwriteFileSetting;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import jerusalem.scenario.network.CreateNetwork;
+import jerusalem.scenario.population.PopCreator;
+
 /**
  * @author Golan Ben-Dor
  */
 public class RunJerusalem {
 	final public static Properties props = DbUtils.readProperties("database.properties");
-	final public static String INPUT_NETWORK = props.getProperty("db.output_network_xml_path");
-	final public static String INPUT_POPULATION = props.getProperty("db.output_population_xml_path");
-	final public static String OUTPUT_FOLDER = props.getProperty("db.output_folder");
-	final public static String RUN_ID = "" + 5;
+	final public static String OUTPUT_FOLDER = props.getProperty("folder.output_folder");
+	final public static String RUN_ID = "" + 6;
 
 	public static void main(String[] args) {
 		// create a new MATSim config for JLM
@@ -51,9 +52,9 @@ public class RunJerusalem {
 	public static Config createJeruslaemConfig() {
 		Config config = ConfigUtils.createConfig();
 
-		config.network().setInputFile(INPUT_NETWORK);
+		config.network().setInputFile(CreateNetwork.NETWORK_OUTPUT_PATH);
 
-		config.plans().setInputFile(INPUT_POPULATION);
+		config.plans().setInputFile(PopCreator.POPULATION_OUTPUT_PATH);
 
 		// modify controler
 		config.controler().setWriteEventsInterval(1);

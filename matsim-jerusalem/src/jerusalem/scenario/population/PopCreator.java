@@ -36,7 +36,9 @@ public class PopCreator {
 
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private static final Properties props = DbUtils.readProperties("database.properties");
-	private static final String OUTPUT_POPULATION_XML = props.getProperty("db.output_population_xml_path");
+	private final static String POPULATION_ID = "" + 3;
+	public final static String POPULATION_OUTPUT_PATH = props.getProperty("folder.output_folder") + POPULATION_ID
+			+ ".population.xml.gz";
 	private static final String pathQuery = "./sql_scripts/pop_query.sql";
 	private static Scenario sc;
 	private static Population population;
@@ -54,9 +56,10 @@ public class PopCreator {
 
 		// read population from database
 		readPopulation(query);
-
+		// FIXME Change all logic - first read persons, then assign to households, then
+		// add activities and legs
 		// write population
-		new PopulationWriter(sc.getPopulation(), sc.getNetwork()).write(OUTPUT_POPULATION_XML);
+		new PopulationWriter(sc.getPopulation(), sc.getNetwork()).write(POPULATION_OUTPUT_PATH);
 	}
 
 	/**
@@ -65,7 +68,7 @@ public class PopCreator {
 	 * @param path
 	 * @return
 	 */
-//	get rid of this function, move query to sql view/table
+//	TODO get rid of this function, move query to sql view/table
 	private static String readQueryFile(String path) {
 		log.info("reading pop_query.sql");
 		BufferedReader br = null;
@@ -131,6 +134,7 @@ public class PopCreator {
 	/**
 	 * Method to initialize population generator
 	 */
+//	TODO remove, this is unnecessary 
 	private static void initialPopulationSetup() {
 		sc = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		population = sc.getPopulation();
@@ -145,7 +149,7 @@ public class PopCreator {
 	 * @throws SQLException
 	 */
 	private static void createAgent(ResultSet resultSet) throws SQLException {
-		// TODO add agents attributes - think about more attributes
+		// TODO this has to change - move as many attributes as possible to households
 		String agentId = resultSet.getString("hhid") + "-" + resultSet.getString("pnum");
 		person = populationFactory.createPerson(Id.create(agentId, Person.class));
 		// setting attributes
@@ -167,7 +171,7 @@ public class PopCreator {
 	 * @throws SQLException
 	 */
 	private static void addActivityAndLeg(ResultSet resultSet) throws SQLException {
-
+		// TODO clean and improve logic, get rid of centroids
 		// when agent only stays at home
 		if (resultSet.getInt("personTripNum") == 0) {
 			Coord origCoordinates = new Coord(resultSet.getDouble("homeX"), resultSet.getDouble("homeY"));
@@ -178,6 +182,7 @@ public class PopCreator {
 		} else {
 			String actType = PopUtils.ActivityType(resultSet.getInt("origPurp"));
 			Coord origCoordinates;
+//			TODO why am I doing this? I remember there was a good reason. figure it out
 			resultSet.getDouble("actX");
 			if (!resultSet.wasNull()) {
 				origCoordinates = new Coord(resultSet.getDouble("actX"), resultSet.getDouble("actY"));
@@ -188,7 +193,7 @@ public class PopCreator {
 			}
 
 			// if activity is in home, use home coordinates
-			double endTime = resultSet.getDouble("finalDepartMinute") * 60 + 10800;
+			double endTime = resultSet.getDouble("finalDepartMinute") * 60 + 3 * 60 * 60;
 			String mode = PopUtils.Mode(resultSet.getInt("modeCode"));
 
 			// adding activity and leg
@@ -196,7 +201,7 @@ public class PopCreator {
 			activity.setEndTime(endTime);
 			plan.addActivity(activity);
 			plan.addLeg(populationFactory.createLeg(mode));
-
+			// TODO change logic to get rid of dest coordinates
 			// last activity - adding destination activity and adding person to population
 			if (resultSet.getInt("personTripNum") == resultSet.getInt("lastTripNum")) {
 				Coord destCoordinates = new Coord(resultSet.getDouble("homeX"), resultSet.getDouble("homeY"));

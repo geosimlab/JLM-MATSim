@@ -1,0 +1,11 @@
+headway_period,start_time,end_time
+first_period,00:00:00,05:30:00
+second_period,05:30:00,07:30:00
+third_period,07:30:00,08:30:00
+fourth_period,08:30:00,09:30:00
+fifth_period,09:30:00,13:00:00
+sixth_period,13:00:00,15:30:00
+seventh_period,15:30:00,17:30:00
+eighth_period,17:30:00,19:00:00
+ninth_period,19:00:00,21:00:00
+tenth_period,21:00:00,23:59:00
