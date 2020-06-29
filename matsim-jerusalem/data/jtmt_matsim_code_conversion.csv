@@ -1,0 +1,20 @@
+jtmt_code,jtmt_activity,MATSim_activity
+0,home,home
+1,workplace,work
+15,work-related business,other
+2,university,school
+3,school,school
+411,pure escort,other
+412,ridesharing,other
+42,other escort,other
+5,shopping,leisure
+6,Other maintenance,other
+63,Medical Maintenance,other
+64,Administrative Maintenance,other
+7,Eating out,leisure
+71,breakfast,leisure
+72,linch,leisure
+73,dinner,leisure
+8,Visiting relatives or friends,leisure
+9,other discretionary,other
+91,religious,other

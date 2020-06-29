@@ -37,12 +37,14 @@ public class DbInitialize {
 			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
 
 	// psql command: copying the households csv into db
-	private static String copyHouseHolds = "psql -c \"\\copy households FROM '" + props.getProperty("population.household_path")
-			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+	private static String copyHouseHolds = "psql -c \"\\copy households FROM '"
+			+ props.getProperty("population.household_path") + "' DELIMITER ',' CSV HEADER;\" postgresql://"
+			+ helperCommandEnd;
 
 	// psql command: copying the nodes csv into db
 	private static String copyNodes = "psql -c \"\\copy nodes (i,is_centroid,x,y) FROM '"
-			+ props.getProperty("network.nodes_path") + "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+			+ props.getProperty("network.nodes_path") + "' DELIMITER ',' CSV HEADER;\" postgresql://"
+			+ helperCommandEnd;
 
 	// psql command: copying the links csv into db
 	private static String copyLinks = "psql -c \"\\copy links FROM '" + props.getProperty("network.links_path")
@@ -53,9 +55,15 @@ public class DbInitialize {
 			+ own_path + "/data/BENTAL_JTMT_CODE_CONVERSION.csv" + "' DELIMITER ',' CSV HEADER;\" postgresql://"
 			+ helperCommandEnd;
 
+	// psql command: copying the bental_jtmt_code_conversion csv into db
+	private static String copyjtmt_matsim_code_conversion = "psql -c \"\\copy jtmt_matsim_code_conversion FROM '"
+			+ own_path + "/data/jtmt_matsim_code_conversion.csv" + "' DELIMITER ',' CSV HEADER;\" postgresql://"
+			+ helperCommandEnd;
+
 	// psql command: copying the line_path csv into db
-	private static String copyLine_path = "psql -c \"\\copy line_path FROM '" + props.getProperty("transit.line_path_path")
-			+ "' DELIMITER ',' CSV HEADER;\" postgresql://" + helperCommandEnd;
+	private static String copyLine_path = "psql -c \"\\copy line_path FROM '"
+			+ props.getProperty("transit.line_path_path") + "' DELIMITER ',' CSV HEADER;\" postgresql://"
+			+ helperCommandEnd;
 
 	// psql command: copying the lines csv into db
 	private static String copyLines = "psql -c \"\\copy lines FROM '" + props.getProperty("transit.lines_path")
@@ -106,6 +114,12 @@ public class DbInitialize {
 			+ "/sql_scripts/create_other_activities_coordinates.sql\" postgresql://" + helperCommandEnd;
 
 	// psql command: referring to sql files
+	// (/sql_scirpts/create_households_coordinates.sql) that
+	// creates a table with home coordinates for each household by taz
+	private static String create_amenities = "psql -c \"\\i " + own_path
+			+ "/sql_scripts/create_amenities.sql\" postgresql://" + helperCommandEnd;
+
+	// psql command: referring to sql files
 	// (/sql_scirpts/create_stops.sql) that
 	// creates a table with pt stops
 	private static String create_stops = "psql -c \"\\i " + own_path + "/sql_scripts/create_stops.sql\" postgresql://"
@@ -132,17 +146,18 @@ public class DbInitialize {
 
 		// running psql commands - loading tables
 		DbUtils.runCommand(loadTables, psql_path);
-		DbUtils.runCommand(copyTrips, psql_path);
-		DbUtils.runCommand(copyPersons, psql_path);
 		DbUtils.runCommand(copyHouseHolds, psql_path);
+		DbUtils.runCommand(copyPersons, psql_path);
+		DbUtils.runCommand(copyTrips, psql_path);
+		DbUtils.runCommand(copybental_jtmt_code_conversion, psql_path);
+		DbUtils.runCommand(copyjtmt_matsim_code_conversion, psql_path);
 		DbUtils.runCommand(copyNodes, psql_path);
 		DbUtils.runCommand(copyLinks, psql_path);
-		DbUtils.runCommand(copyLine_path, psql_path);
+		DbUtils.runCommand(copyVehicle_types, psql_path);
 		DbUtils.runCommand(copyLines, psql_path);
+		DbUtils.runCommand(copyLine_path, psql_path);
 		DbUtils.runCommand(copyHeadway, psql_path);
 		DbUtils.runCommand(copyHeadway_periods, psql_path);
-		DbUtils.runCommand(copyVehicle_types, psql_path);
-		DbUtils.runCommand(copybental_jtmt_code_conversion, psql_path);
 //		loading spatial tables
 		DbUtils.runCommand(copyTAZShp, ogr2ogr_path);
 		DbUtils.runCommand(copyBLDGShp, ogr2ogr_path);
@@ -154,6 +169,7 @@ public class DbInitialize {
 //		prepare data for model
 		DbUtils.runCommand(create_households_coordinates, psql_path);
 		DbUtils.runCommand(create_other_activities_coordinates, psql_path);
+		DbUtils.runCommand(create_amenities, psql_path);
 		DbUtils.runCommand(create_stops, psql_path);
 		DbUtils.runCommand(create_pt_routes, psql_path);
 		DbUtils.runCommand(create_readable_headway, psql_path);
