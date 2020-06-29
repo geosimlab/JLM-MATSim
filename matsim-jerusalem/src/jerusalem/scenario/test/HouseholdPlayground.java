@@ -129,6 +129,7 @@ public class HouseholdPlayground {
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		PreparedStatement pst = con.prepareStatement("select taz from inner_taz;");
 		ResultSet resultSet = pst.executeQuery();
+
 		Map<String, Map<String, ActivityFacilities>> tazMap = new TreeMap<String, Map<String, ActivityFacilities>>();
 		log.info("Reading taz numbers, creating containers");
 		while (resultSet.next()) {
