@@ -13,7 +13,9 @@ CREATE TABLE IF NOT EXISTS taz_centroid AS
 --changing taz600 
 ALTER TABLE taz600 
 	ALTER COLUMN taz TYPE INT USING taz::integer;
---creating a table for inner taz (taz in the model)
+--creating a table for inner taz (taz in the model
+--TODO Judea(9304) is added because it is in trips table. 
+--In the future(external trips) this should be avoided, or taken care with taz centroid
 CREATE TABLE IF NOT EXISTS inner_taz AS 
 	SELECT *  
 	FROM taz600 
@@ -29,7 +31,7 @@ CREATE TABLE IF NOT EXISTS bldg_cent AS
 		   bldg_ht 
     FROM bldg;
 
---adding the nodes into building centriods and bldg_poi
+--adding nodes into building centroids and bldg_poi
 --stage 1: adding a field for real or fake for both tables, and populating exisitng rows with false
 alter table bldg_cent
 add column fake boolean DEFAULT FALSE;
@@ -46,7 +48,7 @@ from nodes;
 --stage 3: adding all fake values from bldg_cent to poi_bldg
 insert into poi_bldg(uniq_id,bldg_id,fcode,usg_group,usg_code,geometry,e_ord,n_ord,fake)
 select uniq_id,
-		uniq_id as bldg_id, 
+		uniq_id + 1000000 as bldg_id, 
 		1000 as fcode,--fake fcode
 		100 as usg_group, --fake usg_group
 		10000 as usg_code, --fake usg_code

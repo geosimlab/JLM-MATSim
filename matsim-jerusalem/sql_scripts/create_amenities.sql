@@ -1,7 +1,7 @@
 select * into amenities from (with poi_blds_coverted_taz as (
 	select uniq_id,poi_bldg.usg_group,poi_bldg.usg_code, 
 usg_sp_name,bldg_id,e_ord x,n_ord y,fake,
-inner_taz.taz,
+taz600.taz,
 jtmt_matsim_code_conversion.MATSim_activity
 from poi_bldg 
 left join bental_jtmt_code_conversion_long 
@@ -9,9 +9,9 @@ on poi_bldg.usg_group = bental_jtmt_code_conversion_long.usg_group
 and poi_bldg.usg_code = bental_jtmt_code_conversion_long.usg_code
 left join jtmt_matsim_code_conversion
 on jtmt_matsim_code_conversion.jtmt_code = bental_jtmt_code_conversion_long.value1
-left join inner_taz 
-on st_intersects(poi_bldg.geometry,inner_taz.geometry)
-where taz is not null and poi_bldg.usg_code != 7600),
+left join taz600 
+on st_intersects(poi_bldg.geometry,taz600.geometry)
+where poi_bldg.usg_code != 7600 and (taz < 9000 or fake)),
 taz_opening as(
 select desttaz,MATSim_activity, min(trips.finalarriveminute) opening_time_dest
 from trips 

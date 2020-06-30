@@ -139,7 +139,7 @@ public class HouseholdPlayground {
 
 	public static ActivityFacilities createFacilities(Scenario scenario) throws SQLException {
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
-		PreparedStatement pst = con.prepareStatement("select taz from inner_taz;");
+		PreparedStatement pst = con.prepareStatement("select taz from taz600;");
 		ResultSet resultSet = pst.executeQuery();
 		ActivityFacilities facilities = FacilitiesUtils.createActivityFacilities();
 		log.info("Reading taz numbers, creating containers");
@@ -187,10 +187,10 @@ public class HouseholdPlayground {
 		while (resultSet.next()) {
 			String amen_uniq_id = "" + resultSet.getInt("uniq_id");
 			Id<ActivityFacility> facilityId = Id.create(amen_uniq_id, ActivityFacility.class);
-
 			String taz = "" + resultSet.getInt("taz");
 			ActivityFacilityImpl activityFacility = null;
 			if (!facilities.getFacilities().containsKey(facilityId)) {
+
 				Coord facilityCoord = new Coord(resultSet.getDouble("x"), resultSet.getDouble("y"));
 				activityFacility = (ActivityFacilityImpl) aff.createActivityFacility(facilityId, facilityCoord);
 				facilities.addActivityFacility(activityFacility);
@@ -275,9 +275,9 @@ public class HouseholdPlayground {
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		con.setAutoCommit(false);
 		Statement statement = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-		statement.setFetchSize(5000);
-		ResultSet resultSet = statement
-				.executeQuery("select * from trips order by hhid,pnum,personTripNum limit 100000;");
+		statement.setFetchSize(50000);
+		ResultSet resultSet = statement.executeQuery(
+				"select hhid,pnum,personTripNum,origpurp,finalDepartMinute,origtaz,modeCode from trips order by hhid,pnum,personTripNum;");
 		// TODO trips has major problems. just notice they are repaired
 		PopulationFactory populationFactory = population.getFactory();
 		Person person = null;
@@ -310,7 +310,8 @@ public class HouseholdPlayground {
 			String mode = PopUtils.Mode(resultSet.getInt("modeCode"));
 			plan.addLeg(populationFactory.createLeg(mode));
 			// checking if person ended or that table ended
-			if (resultSet.getInt("personTripNum") == 0 | !resultSet.next()) {
+
+			if (!resultSet.next() || resultSet.getInt("personTripNum") == 1) {
 				activity = createHomeActivity(population, populationFactory, personId);
 				plan.addActivity(activity);
 				person = population.getPersons().get(personId);

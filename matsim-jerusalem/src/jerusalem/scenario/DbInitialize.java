@@ -8,7 +8,11 @@ import java.util.Properties;
  */
 
 public class DbInitialize {
-
+	// FIXME refactor all according to
+	// https://stackoverflow.com/questions/46988855/correct-way-to-use-copy-postgres-jdbc
+	// and
+	// https://stackoverflow.com/questions/27192695/how-to-run-gdal-ogr2ogr-in-java-to-convert-shapefiles-to-geojson
+	// FIXME break into data loading and data manipulation
 	// getting parameters for commands
 	public static Properties props = DbUtils.readProperties("database.properties");
 	public final static String username = props.getProperty("db.username");
