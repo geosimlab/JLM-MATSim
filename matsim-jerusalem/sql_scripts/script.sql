@@ -1,1 +1,1 @@
-select * from taz_centroid tc where taz >= 9000 
+delete from headway_periods  

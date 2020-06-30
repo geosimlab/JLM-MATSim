@@ -40,3 +40,7 @@ when transport_mode = 'r' then 'train'
 when transport_mode = 'b' then 'bus' end as transport_mode_string
 from final_t
 order by line, seq_number;
+ALTER TABLE pt_routes 
+add primary key (line,seq_number);
+ALTER TABLE pt_routes
+ADD CONSTRAINT pt_routes_to_lines FOREIGN KEY (line) REFERENCES lines (lines);

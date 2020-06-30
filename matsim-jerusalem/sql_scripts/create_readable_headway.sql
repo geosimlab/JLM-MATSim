@@ -16,3 +16,7 @@ left join lines
 on headway_long.line = lines.lines
 left join vehicle_types 
 on lines.vehicle = vehicle_types.vehicle_code;
+ALTER TABLE readable_headway 
+ADD PRIMARY KEY (line,start_time);
+ALTER TABLE readable_headway
+ADD CONSTRAINT rh_to_lines FOREIGN KEY (line) REFERENCES lines (lines);

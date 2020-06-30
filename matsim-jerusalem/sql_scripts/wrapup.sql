@@ -4,22 +4,34 @@ set geometry = ST_translate(ST_SetSRID(ST_Point(x, y), 2039),-70,-50);
 update nodes
 set x = st_x(geometry),
 	y = st_y(geometry); 
---creating a table for taz centroids - might by redundant
-CREATE TABLE IF NOT EXISTS taz_centroid AS 
-	SELECT taz::integer,
-	 st_x(st_centroid(geometry))::int AS x,
-	 st_y(st_centroid(geometry))::int AS y 
-	 FROM taz600;
 --changing taz600 
 ALTER TABLE taz600 
 	ALTER COLUMN taz TYPE INT USING taz::integer;
---creating a table for inner taz (taz in the model
---TODO Judea(9304) is added because it is in trips table. 
---In the future(external trips) this should be avoided, or taken care with taz centroid
+CREATE UNIQUE INDEX taz_600_taz 
+ON taz600 (taz);
+ALTER TABLE taz600 
+ADD CONSTRAINT unique_taz 
+UNIQUE USING INDEX taz_600_taz;
+--creating a table for taz centroids - might by redundant
+CREATE TABLE IF NOT EXISTS taz_centroid AS 
+	SELECT taz,
+	 st_x(st_centroid(geometry))::int AS x,
+	 st_y(st_centroid(geometry))::int AS y 
+	 FROM taz600;
+ALTER TABLE taz_centroid
+add PRIMARY KEY (taz);
+ALTER TABLE taz_centroid
+ADD CONSTRAINT taz_cent_to_taz600 FOREIGN KEY (taz) REFERENCES taz600 (taz);
+
+--creating a table for inner taz (taz in the model)
 CREATE TABLE IF NOT EXISTS inner_taz AS 
 	SELECT *  
 	FROM taz600 
 	WHERE taz < 9000;
+ALTER TABLE inner_taz
+add PRIMARY KEY (taz);
+ALTER TABLE inner_taz
+ADD CONSTRAINT inner_taz_to_taz600 FOREIGN KEY (taz) REFERENCES taz600 (taz);
 --creating a table for building centriods 
 CREATE TABLE IF NOT EXISTS bldg_cent AS 
 	SELECT uniq_id, 
@@ -30,6 +42,11 @@ CREATE TABLE IF NOT EXISTS bldg_cent AS
 		   ht_land, 
 		   bldg_ht 
     FROM bldg;
+ALTER TABLE bldg_cent
+add PRIMARY KEY (uniq_id);
+--TODO maybe fake buildings should be added to BLDG
+--ALTER TABLE bldg_cent
+--ADD CONSTRAINT bldg_cent_to_bldg FOREIGN KEY (uniq_id) REFERENCES bldg(uniq_id);
 
 --adding nodes into building centroids and bldg_poi
 --stage 1: adding a field for real or fake for both tables, and populating exisitng rows with false
@@ -69,11 +86,12 @@ where fake;
 --on l.j = fb.i::integer
  
  --creating indices
-CREATE INDEX idx_hhid_t ON trips(hhid);
-CREATE INDEX idx_hhid_p ON persons(hhid);
-CREATE INDEX idx_hhid_h ON households(hhid);
+--CREATE INDEX idx_hhid_t ON trips(hhid);
+--CREATE INDEX idx_hhid_p ON persons(hhid);
+--CREATE INDEX idx_hhid_h ON households(hhid);
 CREATE INDEX idx_bldg_cent ON bldg_cent USING GIST (centroid);
 CREATE INDEX idx_inner_taz ON inner_taz USING GIST (geometry);
+CREATE INDEX idx_nodes ON nodes USING GIST (geometry);
 --populating geometry columns
 SELECT Populate_Geometry_Columns('public.bldg_cent'::regclass);
 SELECT Populate_Geometry_Columns('public.inner_taz'::regclass);

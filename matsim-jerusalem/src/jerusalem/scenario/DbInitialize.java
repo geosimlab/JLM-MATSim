@@ -9,6 +9,7 @@ import java.util.Properties;
 
 public class DbInitialize {
 	// FIXME refactor all according to
+	//
 	// https://stackoverflow.com/questions/46988855/correct-way-to-use-copy-postgres-jdbc
 	// and
 	// https://stackoverflow.com/questions/27192695/how-to-run-gdal-ogr2ogr-in-java-to-convert-shapefiles-to-geojson

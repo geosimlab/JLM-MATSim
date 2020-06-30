@@ -39,3 +39,7 @@ and taz_opening.MATSim_activity = poi_blds_coverted_taz.MATSim_activity
 left join taz_closing 
 on taz_closing.origtaz = poi_blds_coverted_taz.taz
 and taz_closing.MATSim_activity = poi_blds_coverted_taz.MATSim_activity)q;
+ALTER TABLE amenities 
+ADD PRIMARY KEY (uniq_id,MATSim_activity);
+--ALTER TABLE amenities
+--ADD CONSTRAINT amen_to_bldg_poi FOREIGN KEY (uniq_id) REFERENCES poi_bldg (uniq_id);
