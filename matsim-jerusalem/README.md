@@ -2,30 +2,25 @@
 some text about the project
 
 ##Getting started
-###Downloading and installing java and eclipse
-Golan, I need help here
+###Downloading necessary software
+In order to run JLM-MATSim model, a few softwares are required:
 
-###Downloading and installing MATSim
-Also here
+1. Java jdk 11 [(Download)](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
+2. DELETE Eclipse for Java developers [(Download)](https://www.eclipse.org/downloads/packages/release/kepler/sr1/eclipse-ide-java-developers)
+2a. maybe eclipse [(Download)](https://www.eclipse.org/downloads/)
+3. PostgreSQL 10 [(Download)](https://www.postgresql.org/download/windows/)
+4. PostGIS. PostGIS is available to download and install through PostgreSQL stack builder executable (you will be prompted to use of at the end of PostgreSQL installation). More instructions [here](https://postgis.net/install/). This project uses PostGIS 3.
+5. OSGeo4W [(Download)](https://trac.osgeo.org/osgeo4w/)
 
-###Downloading and installing external software
-In order to work properly, JLM-MATSim requires three external softwares: 
-1. PostgreSQL. [This](https://www.2ndquadrant.com/en/blog/pginstaller-install-postgresql/) is a good guide for downloading, installing and setting up PostgreSQL. It is important to write down the installation directory, username, password and port. This project uses PostgreSQL 10.
-2. PostGIS. PostGIS is available to download and install through PostgreSQL stack builder executable. More instructions [here](https://postgis.net/install/). This project uses PostGIS 3. 
-3. OSGeo4W64, downloadable from [here](https://trac.osgeo.org/osgeo4w/). It is needed for the ogr2ogr binary file.
+###Download project data
+This project is using data from Jerusalem Master Plan Team Activity Based model results and Survey of Israel. Due to data licensing issues, data is not presented. For more information, contact the developers. 
 
-###Data
-in order to get initialize the database, a few files are required:
-1. Trips - JTMT
-2. Persons - JTMT
-3. Households - JTMT
-4. Bental GDB - MAPI
-5. TAZ shape - JTMT
-6. Nodes - JTMT
-7. Links - JTMT
-8. Line_path - JTMT
-9. Lines - JTMT
-10. Headway - JTMT
+###Setting up  
+0. [Add java to path](https://www.java.com/en/download/help/path.xml) in order to run eclipse. a restart might be necessary. NOT SURE, CHECK IN NEXT SETUP
+0. Open a GitHub account. 
+1. Use git in eclipse to clone JLM-MATSim: https://github.com/geosimlab/JLM-MATSim.git as such: file->import->git->projects from git->clone URI. It will go through a sequence of windows; it is important that you import as 'general project', go back and then forth, and coohe the matsim-jerusalem library. 
+2. Open the project explorer, and connect Java jdk 11 to the project's build path(right click project name -> Build Path -> Configure Build Path -> choose Libraries tab -> TODO)
+3. After project is cloned, copy the mock.properties file into the project. Call the newly added file database.properties.
+4. Edit the UPPERCASE values as instructed. 
+5. run dbinitialize.java 
 
-###mock.properties
-mock.properties contains all properties to be defined. All uppercase should be replaced in order that the model will run. after this is done, change file name to "database.properties".

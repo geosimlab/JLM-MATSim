@@ -172,7 +172,6 @@ public class CreateNetwork {
 			if (num_lanes == 0) {
 
 				jerusalemLink.setLaneNum(1);
-				System.out.println(jerusalemLink.getLaneNum());
 			} else {
 				jerusalemLink.setLaneNum(num_lanes);
 			}
