@@ -20,7 +20,7 @@ import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import jerusalem.scenario.network.CreateNetwork;
-import jerusalem.scenario.population.PopCreator;
+import jerusalem.scenario.test.HouseholdPlayground;
 
 /**
  * @author Golan Ben-Dor
@@ -53,8 +53,10 @@ public class RunJerusalem {
 		Config config = ConfigUtils.createConfig();
 
 		config.network().setInputFile(CreateNetwork.NETWORK_OUTPUT_PATH);
-
-		config.plans().setInputFile(PopCreator.POPULATION_OUTPUT_PATH);
+		config.plans().setInputFile(HouseholdPlayground.POPULATION_OUTPUT_PATH);
+		config.facilities().setInputFile(HouseholdPlayground.FACILITIES_OUTPUT_PATH);
+		config.households().setInputFile(HouseholdPlayground.HOUSEHOLDS_OUTPUT_PATH);
+		config.vehicles().setVehiclesFile(HouseholdPlayground.FAMILY_VEHICLES_OUTPUT_PATH);
 
 		// modify controler
 		config.controler().setWriteEventsInterval(1);

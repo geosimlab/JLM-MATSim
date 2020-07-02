@@ -129,6 +129,7 @@ public class PopCreator {
 			i++;
 
 		}
+		con.close();
 	}
 
 	/**

@@ -51,6 +51,7 @@ public class CreateNetwork {
 			Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_CONNECTOR);
 			// Create the Jerusalem MATSim Network
 			Network jlmNet = createMATSimNet(nodesMap, linksMap);
+			jerusalemNetworkCleaner(jlmNet);
 			this.NET = jlmNet;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -95,6 +96,7 @@ public class CreateNetwork {
 	private static Map<String, Coord> readNodes() throws SQLException {
 		log.info("Reading nodes");
 		Map<String, Coord> nodesMap = new TreeMap();
+
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		PreparedStatement pst = con.prepareStatement("SELECT * FROM nodes;");
 		ResultSet resultSet = pst.executeQuery();
@@ -105,6 +107,7 @@ public class CreateNetwork {
 			nodesMap.put(nodeId, new Coord(nodeX, nodeY));
 		}
 		log.info("Finished Reading nodes");
+		con.close();
 		return nodesMap;
 	}
 
@@ -196,7 +199,7 @@ public class CreateNetwork {
 			linkArr.add(jerusalemLink);
 			LinksMap.put(id, linkArr);
 		}
-
+		con.close();
 		return LinksMap;
 	}
 

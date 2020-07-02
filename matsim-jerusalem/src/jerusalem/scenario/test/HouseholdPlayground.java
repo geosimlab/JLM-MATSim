@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
@@ -32,6 +33,7 @@ import org.matsim.facilities.ActivityFacilityImpl;
 import org.matsim.facilities.FacilitiesUtils;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.OpeningTimeImpl;
+import org.matsim.facilities.algorithms.WorldConnectLocations;
 import org.matsim.households.Household;
 import org.matsim.households.HouseholdImpl;
 import org.matsim.households.HouseholdUtils;
@@ -41,6 +43,12 @@ import org.matsim.households.HouseholdsImpl;
 import org.matsim.households.HouseholdsWriterV10;
 import org.matsim.households.Income;
 import org.matsim.households.IncomeImpl;
+import org.matsim.vehicles.MatsimVehicleWriter;
+import org.matsim.vehicles.Vehicle;
+import org.matsim.vehicles.VehicleCapacity;
+import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.VehicleUtils;
+import org.matsim.vehicles.Vehicles;
 
 import jerusalem.scenario.DbInitialize;
 import jerusalem.scenario.DbUtils;
@@ -53,30 +61,42 @@ public class HouseholdPlayground {
 	private final static String HOUSEHOLDS_ID = "" + 1;
 	private final static String FACILITIES_ID = "" + 1;
 	private final static String POPULATION_ID = "" + 4;
+	private final static String FAMILY_VEHICLES_ID = "" + 4;
+	public final static String POPULATION_OUTPUT_PATH = props.getProperty("folder.output_folder") + POPULATION_ID
+			+ ".population.xml.gz";
+	public final static String HOUSEHOLDS_OUTPUT_PATH = props.getProperty("folder.output_folder") + HOUSEHOLDS_ID
+			+ ".households.xml.gz";
+	public final static String FACILITIES_OUTPUT_PATH = props.getProperty("folder.output_folder") + FACILITIES_ID
+			+ ".facilities.xml.gz";
+	public final static String FAMILY_VEHICLES_OUTPUT_PATH = props.getProperty("folder.output_folder")
+			+ FAMILY_VEHICLES_ID + ".family_vehicles.xml.gz";
 
 	public static void main(String[] args) throws SQLException {
+		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		Config config = ConfigUtils.createConfig();
-		Scenario scenario = ScenarioUtils.createScenario(config);
-		Population population = createPersons(scenario);
-		Households households = createHouseholds(scenario);
-		ActivityFacilities facilities = createFacilities(scenario);
-		ArrayList<Object> temp = addFacilitiesToHouseholds(facilities, households);
-		facilities = (ActivityFacilities) temp.get(0);
-		households = (Households) temp.get(1);
-		population = addHomeToPopulation(households, population);
-		population = addPlansToPopulation(population, facilities);
-		new FacilitiesWriter(facilities)
-				.write(props.getProperty("folder.output_folder") + FACILITIES_ID + ".facilities.xml.gz");
-		new HouseholdsWriterV10(households)
-				.writeFile(props.getProperty("folder.output_folder") + HOUSEHOLDS_ID + ".households.xml.gz");
-		new PopulationWriter(population)
-				.write(props.getProperty("folder.output_folder") + POPULATION_ID + ".population.xml.gz");
 
+		Scenario scenario = ScenarioUtils.createScenario(config);
+		CreateNetwork createNetwork = new CreateNetwork();
+		Network network = createNetwork.getJlmNet();
+		Population population = createPersons(scenario, con);
+		ArrayList<Object> temp1 = createHouseholds(scenario, con);
+		Households households = (Households) temp1.get(0);
+		Vehicles vehicles = (Vehicles) temp1.get(1);
+		ActivityFacilities facilities = createFacilities(scenario, con);
+		ArrayList<Object> temp2 = addFacilitiesToHouseholds(facilities, households);
+		facilities = (ActivityFacilities) temp2.get(0);
+		households = (Households) temp2.get(1);
+		new WorldConnectLocations(config).connectFacilitiesWithLinks(facilities, network);
+		population = addHomeToPopulation(households, population);
+		population = addPlansToPopulation(population, facilities, con);
+		con.close();
+		new FacilitiesWriter(facilities).write(FACILITIES_OUTPUT_PATH);
+		new HouseholdsWriterV10(households).writeFile(HOUSEHOLDS_OUTPUT_PATH);
+		new PopulationWriter(population).write(POPULATION_OUTPUT_PATH);
+		new MatsimVehicleWriter(vehicles).writeFile(FAMILY_VEHICLES_OUTPUT_PATH);
 	}
 
-	// FIXME create function that connects to database and executes query
-	public static Population createPersons(Scenario scenario) throws SQLException {
-		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
+	public static Population createPersons(Scenario scenario, Connection con) throws SQLException {
 		PreparedStatement pst = con.prepareStatement("SELECT * FROM persons;");
 		ResultSet resultSet = pst.executeQuery();
 		Population population = scenario.getPopulation();
@@ -98,16 +118,25 @@ public class HouseholdPlayground {
 			}
 			i++;
 		}
-		con.close();
 		return population;
 	}
 
-	public static Households createHouseholds(Scenario scenario) throws SQLException {
-		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
+	public static ArrayList<Object> createHouseholds(Scenario scenario, Connection con) throws SQLException {
 		PreparedStatement pst = con.prepareStatement("SELECT * FROM households;");
 		ResultSet resultSet = pst.executeQuery();
 		HouseholdsImpl households = (HouseholdsImpl) scenario.getHouseholds();
 		HouseholdsFactory householdsFactory = households.getFactory();
+		Vehicles vehicles = VehicleUtils.createVehiclesContainer();
+		Id<VehicleType> vehTypeId = Id.create("family", VehicleType.class);
+		VehicleType type = vehicles.getFactory().createVehicleType(vehTypeId);
+		VehicleCapacity cap = type.getCapacity();
+		cap.setSeats(50);
+		cap.setStandingRoom(0);
+		type.setLength(7.5);
+		type.setPcuEquivalents(1);
+		type.setNetworkMode("car");
+		type.setFlowEfficiencyFactor(1);
+		vehicles.addVehicleType(type);
 		log.info("Reading households");
 		int j = 0;
 		while (resultSet.next()) {
@@ -126,6 +155,15 @@ public class HouseholdPlayground {
 				memberIds.add(personId);
 			}
 			household.setMemberIds(memberIds);
+			List<Id<Vehicle>> vehicleIds = new ArrayList<Id<Vehicle>>();
+			for (int i = 1; i <= resultSet.getInt("numauto"); i++) {
+				Id<Vehicle> vehicleId = Id.create("h-" + resultSet.getString("hhid") + i, Vehicle.class);
+				Vehicle vehicle = vehicles.getFactory().createVehicle(vehicleId,
+						vehicles.getVehicleTypes().get(vehTypeId));
+				vehicles.addVehicle(vehicle);
+				vehicleIds.add(vehicleId);
+			}
+			household.setVehicleIds(vehicleIds);
 			// TODO setting vehicles
 			households.addHousehold(household);
 			if (j % 10000 == 0) {
@@ -133,12 +171,13 @@ public class HouseholdPlayground {
 			}
 			j++;
 		}
-		con.close();
-		return households;
+		ArrayList<Object> result = new ArrayList<Object>();
+		result.add(households);
+		result.add(vehicles);
+		return result;
 	}
 
-	public static ActivityFacilities createFacilities(Scenario scenario) throws SQLException {
-		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
+	public static ActivityFacilities createFacilities(Scenario scenario, Connection con) throws SQLException {
 		PreparedStatement pst = con.prepareStatement("select taz from taz600;");
 		ResultSet resultSet = pst.executeQuery();
 		ActivityFacilities facilities = FacilitiesUtils.createActivityFacilities();
@@ -147,8 +186,6 @@ public class HouseholdPlayground {
 			TazFacilities tazFacilities = new TazFacilities();
 			facilities.getAttributes().putAttribute("" + resultSet.getInt("taz"), tazFacilities);
 		}
-		// TODO remove fake nodes from this query, if not double facilities will be
-		// created
 		String query = "select st_x(centroid) x, st_y(centroid) y, hometaz,households_at_bldg,uniq_id from bental_households;";
 		pst = con.prepareStatement(query);
 		resultSet = pst.executeQuery();
@@ -217,7 +254,6 @@ public class HouseholdPlayground {
 			}
 			i++;
 		}
-		con.close();
 		return facilities;
 
 	}
@@ -229,7 +265,6 @@ public class HouseholdPlayground {
 			String taz = (String) household.getAttributes().getAttribute("HomeTAZ");
 			TazFacilities tazFacilities = ((TazFacilities) facilities.getAttributes().getAttribute(taz));
 			ArrayList<Id<ActivityFacility>> facilitiesWithRoom = tazFacilities.getHouseholdsEmpty();
-			ArrayList<Id<ActivityFacility>> facilitiesWithoutRoom = tazFacilities.getHouseholdsFull();
 			Random generator = new Random();
 			Object[] values = facilitiesWithRoom.toArray();
 			Id<ActivityFacility> randomFacilityId = (Id<ActivityFacility>) values[generator.nextInt(values.length)];
@@ -269,10 +304,10 @@ public class HouseholdPlayground {
 
 	}
 
-	public static Population addPlansToPopulation(Population population, ActivityFacilities facilities)
+	public static Population addPlansToPopulation(Population population, ActivityFacilities facilities, Connection con)
 			throws SQLException {
 		log.info("Adding plans to population");
-		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
+
 		con.setAutoCommit(false);
 		Statement statement = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		statement.setFetchSize(50000);
@@ -291,18 +326,19 @@ public class HouseholdPlayground {
 			double endTime = resultSet.getDouble("finalDepartMinute") * 60 + 3 * 60 * 60;
 			// if home, go to person attributes
 			if (activityType == "home") {
-				activity = createHomeActivity(population, populationFactory, personId);
+				activity = createHomeActivity(population, populationFactory, personId, facilities);
 			}
 			// get random facility from amenities in taz
 			else {
 				String taz = "" + resultSet.getInt("origtaz");
-//				TODO gets stuck because of Judea. bypass by including judea in inner taz
 				ArrayList<Id<ActivityFacility>> tazFacilities = ((TazFacilities) facilities.getAttributes()
 						.getAttribute(taz)).getAList(activityType);
 				Random generator = new Random();
 				Object[] values = tazFacilities.toArray();
 				Id<ActivityFacility> randomFacilityId = (Id<ActivityFacility>) values[generator.nextInt(values.length)];
+
 				activity = populationFactory.createActivityFromActivityFacilityId(activityType, randomFacilityId);
+				activity.setLinkId(facilities.getFacilities().get(randomFacilityId).getLinkId());
 			}
 //			add activity and leg to plan
 			activity.setEndTime(endTime);
@@ -312,7 +348,7 @@ public class HouseholdPlayground {
 			// checking if person ended or that table ended
 
 			if (!resultSet.next() || resultSet.getInt("personTripNum") == 1) {
-				activity = createHomeActivity(population, populationFactory, personId);
+				activity = createHomeActivity(population, populationFactory, personId, facilities);
 				plan.addActivity(activity);
 				person = population.getPersons().get(personId);
 				person.addPlan(plan);
@@ -330,7 +366,7 @@ public class HouseholdPlayground {
 			person = population.getPersons().get(personId);
 			if (person.getPlans().isEmpty()) {
 				plan = populationFactory.createPlan();
-				activity = createHomeActivity(population, populationFactory, personId);
+				activity = createHomeActivity(population, populationFactory, personId, facilities);
 				plan.addActivity(activity);
 				person.addPlan(plan);
 			}
@@ -339,11 +375,12 @@ public class HouseholdPlayground {
 	}
 
 	public static Activity createHomeActivity(Population population, PopulationFactory populationFactory,
-			Id<Person> personId) {
+			Id<Person> personId, ActivityFacilities facilities) {
 		String homeFacilityRefId = (String) population.getPersons().get(personId).getAttributes()
 				.getAttribute("homeFacilityRefId");
 		Id<ActivityFacility> facilityId = Id.create(homeFacilityRefId, ActivityFacility.class);
 		Activity activity = populationFactory.createActivityFromActivityFacilityId("home", facilityId);
+		activity.setLinkId(facilities.getFacilities().get(facilityId).getLinkId());
 		return activity;
 	}
 
