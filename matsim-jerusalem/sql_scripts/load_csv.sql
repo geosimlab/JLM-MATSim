@@ -144,7 +144,6 @@ CREATE TABLE IF NOT EXISTS nodes(
     is_centroid varchar(6) NOT NULL,
     x double precision NOT NULL,
     y double precision NOT NULL,
-    geometry geometry, 
     PRIMARY KEY (i)
 );
 

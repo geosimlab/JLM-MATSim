@@ -1,4 +1,6 @@
 --adding a geometry column to nodes, while offseting nodes by 70 meters west and 50 meters south
+ALTER TABLE nodes
+ADD COLUMN geometry geometry(Geometry,2039);
 update nodes
 set geometry = ST_translate(ST_SetSRID(ST_Point(x, y), 2039),-70,-50);
 update nodes

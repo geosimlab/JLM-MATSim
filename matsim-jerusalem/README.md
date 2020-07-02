@@ -18,9 +18,10 @@ This project is using data from Jerusalem Master Plan Team Activity Based model 
 ###Setting up  
 0. [Add java to path](https://www.java.com/en/download/help/path.xml) in order to run eclipse. a restart might be necessary. NOT SURE, CHECK IN NEXT SETUP
 0. Open a GitHub account. 
-1. Use git in eclipse to clone JLM-MATSim: https://github.com/geosimlab/JLM-MATSim.git as such: file->import->git->projects from git->clone URI. It will go through a sequence of windows; it is important that you import as 'general project', go back and then forth, and coohe the matsim-jerusalem library. 
-2. Open the project explorer, and connect Java jdk 11 to the project's build path(right click project name -> Build Path -> Configure Build Path -> choose Libraries tab -> TODO)
-3. After project is cloned, copy the mock.properties file into the project. Call the newly added file database.properties.
-4. Edit the UPPERCASE values as instructed. 
+1. Use git in eclipse to clone JLM-MATSim: https://github.com/geosimlab/JLM-MATSim.git as such: file->import->git->projects from git->clone URI. It will go through a sequence of windows; it is important that you import as 'general project'.
+2. Open the project explorer, right click project -> Configure -> Configure and detect nested folders -> choose the matsim-jerusalem folder. 
+2.5. there might be problems with the maven build. right click pom.xml -> run as ->  maven install. then, right click pom.xml-> maven -> update project.
+3. After project is cloned, create a copy of mock.properties . Call the newly added file database.properties.
+4. Edit the UPPERCASE values in database.properties as instructed. 
 5. run dbinitialize.java 
 
