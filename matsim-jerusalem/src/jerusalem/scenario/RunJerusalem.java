@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
@@ -26,12 +27,14 @@ import jerusalem.scenario.test.HouseholdPlayground;
  * @author Golan Ben-Dor
  */
 public class RunJerusalem {
+	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	final public static Properties props = DbUtils.readProperties("database.properties");
 	final public static String OUTPUT_FOLDER = props.getProperty("folder.output_folder");
-	final public static String RUN_ID = "" + 6;
+	final public static String RUN_ID = "" + 8;
 
 	public static void main(String[] args) {
 		// create a new MATSim config for JLM
+//		log.getRootLogger().setLevel(Level.DEBUG);
 		Config config = createJeruslaemConfig();
 
 		Scenario scenario = ScenarioUtils.loadScenario(config);
@@ -75,7 +78,7 @@ public class RunJerusalem {
 		config.qsim().setEndTime(30 * 3600);
 		config.qsim().setFlowCapFactor(0.3);
 		config.qsim().setStorageCapFactor(Math.pow(0.3, 0.75));
-		config.qsim().setNumberOfThreads(8);
+		config.qsim().setNumberOfThreads(4);
 		config.qsim().setSnapshotPeriod(1);
 		config.qsim().setRemoveStuckVehicles(false);
 		config.qsim().setStuckTime(3600);
@@ -110,11 +113,11 @@ public class RunJerusalem {
 		config.strategy().addStrategySettings(changeExpStrategy);
 
 		// Add strategy - time-mutation
-		StrategySettings timeMutatorStrategy = new StrategySettings();
-		timeMutatorStrategy
-				.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator.toString());
-		timeMutatorStrategy.setWeight(0.1);
-		config.strategy().addStrategySettings(timeMutatorStrategy);
+//		StrategySettings timeMutatorStrategy = new StrategySettings();
+//		timeMutatorStrategy
+//				.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator.toString());
+//		timeMutatorStrategy.setWeight(0.1);
+//		config.strategy().addStrategySettings(timeMutatorStrategy);
 
 		// Add strategy - re-route
 		StrategySettings reRouteStrategy = new StrategySettings();
@@ -123,11 +126,11 @@ public class RunJerusalem {
 		config.strategy().addStrategySettings(reRouteStrategy);
 
 		// Add strategy - Sub-tour strategy
-		StrategySettings subTourModeChoiceStrategy = new StrategySettings();
-		subTourModeChoiceStrategy
-				.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice.toString());
-		subTourModeChoiceStrategy.setWeight(0.1);
-		config.strategy().addStrategySettings(subTourModeChoiceStrategy);
+//		StrategySettings subTourModeChoiceStrategy = new StrategySettings();
+//		subTourModeChoiceStrategy
+//				.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice.toString());
+//		subTourModeChoiceStrategy.setWeight(0.1);
+//		config.strategy().addStrategySettings(subTourModeChoiceStrategy);
 
 		// add car Availability after adding attributes to popualtion
 		// config.subtourModeChoice().setConsiderCarAvailability(true);

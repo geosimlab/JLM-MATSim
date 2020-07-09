@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
@@ -15,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
@@ -24,6 +26,8 @@ import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.api.core.v01.population.PopulationWriter;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.network.filter.NetworkFilterManager;
+import org.matsim.core.network.filter.NetworkLinkFilter;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacilities;
@@ -86,7 +90,9 @@ public class HouseholdPlayground {
 		ArrayList<Object> temp2 = addFacilitiesToHouseholds(facilities, households);
 		facilities = (ActivityFacilities) temp2.get(0);
 		households = (Households) temp2.get(1);
+		network = cutNetwork(network);
 		new WorldConnectLocations(config).connectFacilitiesWithLinks(facilities, network);
+
 		population = addHomeToPopulation(households, population);
 		population = addPlansToPopulation(population, facilities, con);
 		con.close();
@@ -96,6 +102,40 @@ public class HouseholdPlayground {
 		new MatsimVehicleWriter(vehicles).writeFile(FAMILY_VEHICLES_OUTPUT_PATH);
 	}
 
+	/**
+	 * function that cut the network to return links that agents can start their
+	 * trip on
+	 * 
+	 * @param network
+	 * @return network
+	 */
+	public static Network cutNetwork(Network network) {
+		NetworkFilterManager nfm = new NetworkFilterManager(network);
+
+		nfm.addLinkFilter(new NetworkLinkFilter() {
+			@Override
+			public boolean judgeLink(Link l) {
+				boolean isLinkOnForbiddenRoadType = Arrays.asList(1.0, 2.0, 3.0, 4.0, 12.0, 66.0, 77.0)
+						.contains(l.getId().toString().substring(l.getId().toString().length() - 1));
+				boolean IsLinkCarAllowed = l.getAllowedModes().contains("car");
+				if (!isLinkOnForbiddenRoadType && IsLinkCarAllowed) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		});
+		Network filteredCarNetwork = nfm.applyFilters();
+//		new NetworkCleaner().run(filteredCarNetwork);
+		return filteredCarNetwork;
+	}
+
+	/**
+	 * @param scenario
+	 * @param con
+	 * @return
+	 * @throws SQLException
+	 */
 	public static Population createPersons(Scenario scenario, Connection con) throws SQLException {
 		PreparedStatement pst = con.prepareStatement("SELECT * FROM persons;");
 		ResultSet resultSet = pst.executeQuery();
@@ -121,6 +161,12 @@ public class HouseholdPlayground {
 		return population;
 	}
 
+	/**
+	 * @param scenario
+	 * @param con
+	 * @return
+	 * @throws SQLException
+	 */
 	public static ArrayList<Object> createHouseholds(Scenario scenario, Connection con) throws SQLException {
 		PreparedStatement pst = con.prepareStatement("SELECT * FROM households;");
 		ResultSet resultSet = pst.executeQuery();
@@ -148,6 +194,7 @@ public class HouseholdPlayground {
 			household.setIncome(income);
 			// setting homeTAZ
 			HouseholdUtils.putHouseholdAttribute(household, "HomeTAZ", "" + resultSet.getInt("hometaz"));
+			HouseholdUtils.putHouseholdAttribute(household, "sector", "" + resultSet.getInt("sector"));
 			// setting members
 			List<Id<Person>> memberIds = (List<Id<Person>>) new ArrayList<Id<Person>>();
 			for (int i = 0; i < resultSet.getInt("hhsize"); i++) {
@@ -177,6 +224,12 @@ public class HouseholdPlayground {
 		return result;
 	}
 
+	/**
+	 * @param scenario
+	 * @param con
+	 * @return
+	 * @throws SQLException
+	 */
 	public static ActivityFacilities createFacilities(Scenario scenario, Connection con) throws SQLException {
 		PreparedStatement pst = con.prepareStatement("select taz from taz600;");
 		ResultSet resultSet = pst.executeQuery();
@@ -258,6 +311,11 @@ public class HouseholdPlayground {
 
 	}
 
+	/**
+	 * @param facilities
+	 * @param households
+	 * @return
+	 */
 	public static ArrayList<Object> addFacilitiesToHouseholds(ActivityFacilities facilities, Households households) {
 		log.info("Adding facilities to households");
 		for (Id<Household> householdId : households.getHouseholds().keySet()) {
@@ -289,6 +347,11 @@ public class HouseholdPlayground {
 		return result;
 	}
 
+	/**
+	 * @param households
+	 * @param population
+	 * @return
+	 */
 	public static Population addHomeToPopulation(Households households, Population population) {
 		log.info("Adding home attribute to population");
 		for (Id<Person> personId : population.getPersons().keySet()) {
@@ -304,6 +367,13 @@ public class HouseholdPlayground {
 
 	}
 
+	/**
+	 * @param population
+	 * @param facilities
+	 * @param con
+	 * @return
+	 * @throws SQLException
+	 */
 	public static Population addPlansToPopulation(Population population, ActivityFacilities facilities, Connection con)
 			throws SQLException {
 		log.info("Adding plans to population");
@@ -338,9 +408,10 @@ public class HouseholdPlayground {
 				Id<ActivityFacility> randomFacilityId = (Id<ActivityFacility>) values[generator.nextInt(values.length)];
 
 				activity = populationFactory.createActivityFromActivityFacilityId(activityType, randomFacilityId);
+				activity.setCoord(facilities.getFacilities().get(randomFacilityId).getCoord());
 				activity.setLinkId(facilities.getFacilities().get(randomFacilityId).getLinkId());
 			}
-//			add activity and leg to plan
+			// add activity and leg to plan
 			activity.setEndTime(endTime);
 			plan.addActivity(activity);
 			String mode = PopUtils.Mode(resultSet.getInt("modeCode"));
@@ -374,12 +445,20 @@ public class HouseholdPlayground {
 		return population;
 	}
 
+	/**
+	 * @param population
+	 * @param populationFactory
+	 * @param personId
+	 * @param facilities
+	 * @return
+	 */
 	public static Activity createHomeActivity(Population population, PopulationFactory populationFactory,
 			Id<Person> personId, ActivityFacilities facilities) {
 		String homeFacilityRefId = (String) population.getPersons().get(personId).getAttributes()
 				.getAttribute("homeFacilityRefId");
 		Id<ActivityFacility> facilityId = Id.create(homeFacilityRefId, ActivityFacility.class);
 		Activity activity = populationFactory.createActivityFromActivityFacilityId("home", facilityId);
+		activity.setCoord(facilities.getFacilities().get(facilityId).getCoord());
 		activity.setLinkId(facilities.getFacilities().get(facilityId).getLinkId());
 		return activity;
 	}

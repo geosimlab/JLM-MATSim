@@ -16,6 +16,10 @@ import java.util.logging.Logger;
  * @author Ido Klein
  */
 
+/**
+ * @author User
+ *
+ */
 public class DbUtils {
 	/**
 	 * Returns properties of DB and files paths from .properties file

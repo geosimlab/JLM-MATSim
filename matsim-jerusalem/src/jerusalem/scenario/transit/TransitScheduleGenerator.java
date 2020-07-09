@@ -39,6 +39,10 @@ import jerusalem.scenario.DbUtils;
 /**
  * @author Ido Klein
  */
+/**
+ * @author User
+ *
+ */
 public class TransitScheduleGenerator {
 	private static final Logger log = Logger.getLogger(TransitScheduleGenerator.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
@@ -62,6 +66,11 @@ public class TransitScheduleGenerator {
 		return transitSchedule;
 	}
 
+	/**
+	 * @param transitSchedule
+	 * @return
+	 * @throws SQLException
+	 */
 	public static TransitSchedule createTransitLines(TransitSchedule transitSchedule) throws SQLException {
 		log.info("Creating Transit Lines");
 		TransitScheduleFactory builder = transitSchedule.getFactory();
@@ -119,6 +128,10 @@ public class TransitScheduleGenerator {
 		return transitSchedule;
 	}
 
+	/**
+	 * @return
+	 * @throws SQLException
+	 */
 	public static Vehicles createVehicleTypes() throws SQLException {
 		log.info("Creating Vehicle types");
 		Vehicles veh = VehicleUtils.createVehiclesContainer();
@@ -144,6 +157,12 @@ public class TransitScheduleGenerator {
 		return veh;
 	}
 
+	/**
+	 * @param transitSchedule
+	 * @param vehicles
+	 * @return
+	 * @throws SQLException
+	 */
 	public static ArrayList<Object> createVehiclesAndDepartures(TransitSchedule transitSchedule, Vehicles vehicles)
 			throws SQLException {
 		log.info("Creating Vehicles and departures");
@@ -187,6 +206,10 @@ public class TransitScheduleGenerator {
 
 	}
 
+	/**
+	 * @param args
+	 * @throws SQLException
+	 */
 	public static void main(String[] args) throws SQLException {
 		Scenario sc = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		TransitSchedule transitSchedule = sc.getTransitSchedule();

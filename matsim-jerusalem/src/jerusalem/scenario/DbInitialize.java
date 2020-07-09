@@ -17,6 +17,10 @@ import org.postgresql.core.BaseConnection;
 
 import jerusalem.scenario.network.CreateNetwork;
 
+/**
+ * @author User
+ *
+ */
 public class DbInitialize {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	public static Properties props = DbUtils.readProperties("database.properties");

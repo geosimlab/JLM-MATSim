@@ -20,7 +20,9 @@ import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.MultimodalNetworkCleaner;
+import org.matsim.core.network.algorithms.NetworkAdaptLength;
 import org.matsim.core.network.algorithms.NetworkCleaner;
+import org.matsim.core.network.algorithms.NetworkSimplifier;
 import org.matsim.core.network.io.NetworkWriter;
 
 import jerusalem.scenario.DbInitialize;
@@ -37,6 +39,7 @@ public class CreateNetwork {
 	public final static String NETWORK_OUTPUT_PATH = props.getProperty("folder.output_folder") + NETWORK_ID
 			+ ".network.xml.gz";
 	private final static boolean REMOVE_CONNECTOR = true;
+	private final static boolean REMOVE_WALK_LINKS = true;
 
 	private Network NET;
 
@@ -48,10 +51,12 @@ public class CreateNetwork {
 			// Read nodes
 			nodesMap = readNodes();
 			// Read links
-			Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_CONNECTOR);
+			Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_CONNECTOR, REMOVE_WALK_LINKS);
 			// Create the Jerusalem MATSim Network
 			Network jlmNet = createMATSimNet(nodesMap, linksMap);
 			jerusalemNetworkCleaner(jlmNet);
+			new NetworkSimplifier().run(jlmNet);
+			new NetworkAdaptLength().run(jlmNet);
 			this.NET = jlmNet;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -68,7 +73,7 @@ public class CreateNetwork {
 		Map<String, Coord> nodesMap = readNodes();
 
 		// Read links
-		Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_CONNECTOR);
+		Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_CONNECTOR, REMOVE_WALK_LINKS);
 
 		// Create the Jerusalem MATSim Network
 		Network jlmNet = createMATSimNet(nodesMap, linksMap);
@@ -76,7 +81,8 @@ public class CreateNetwork {
 		// Run network cleaner and multiModeNetworkCleaner- deleting nodes which do not
 		// connects
 		jerusalemNetworkCleaner(jlmNet);
-
+		new NetworkSimplifier().run(jlmNet);
+		new NetworkAdaptLength().run(jlmNet);
 		// Write network
 		new NetworkWriter(jlmNet).write(NETWORK_OUTPUT_PATH);
 	}
@@ -152,7 +158,8 @@ public class CreateNetwork {
 	 * @param isConnector remove connectors if true
 	 * @return Map "String, ArrayList<JerusalemLink"
 	 */
-	private static Map<String, ArrayList<JerusalemLink>> readLinks(boolean isConnector) throws SQLException {
+	private static Map<String, ArrayList<JerusalemLink>> readLinks(boolean isConnector, boolean isWalk)
+			throws SQLException {
 		log.info("Reading links");
 
 		Map<String, ArrayList<JerusalemLink>> LinksMap = new TreeMap();
@@ -160,7 +167,7 @@ public class CreateNetwork {
 		PreparedStatement pst = con.prepareStatement("SELECT *, \"@linkcap\" as linkcap FROM links;");
 		ResultSet resultSet = pst.executeQuery();
 		while (resultSet.next()) {
-			if (resultSet.getDouble("type") == 9 && isConnector) {
+			if ((resultSet.getDouble("type") == 9 && isConnector) || (resultSet.getDouble("type") == 10 && isWalk)) {
 				continue;
 			}
 			ArrayList<JerusalemLink> linkArr = new ArrayList<JerusalemLink>();
@@ -175,6 +182,9 @@ public class CreateNetwork {
 			if (num_lanes == 0) {
 
 				jerusalemLink.setLaneNum(1);
+//TODO increase link storage capacity in a seperate function
+//			} else if (resultSet.getDouble("length_met") < 200) {
+//				jerusalemLink.setLaneNum(num_lanes * 3);
 			} else {
 				jerusalemLink.setLaneNum(num_lanes);
 			}
@@ -191,11 +201,12 @@ public class CreateNetwork {
 				jerusalemLink.setFreeSpeed(1.39);
 			} else {
 				jerusalemLink.setCapacity((int) resultSet.getDouble("linkcap"));
-				jerusalemLink.setFreeSpeed(resultSet.getDouble("s0link_m_per_s"));
+				jerusalemLink.setFreeSpeed((double) (int) resultSet.getDouble("s0link_m_per_s"));
 			}
 
 			String id = jerusalemLink.getFromId() + "_" + jerusalemLink.getToId() + "_"
 					+ (int) jerusalemLink.getRoadType();
+
 			linkArr.add(jerusalemLink);
 			LinksMap.put(id, linkArr);
 		}
@@ -243,11 +254,14 @@ public class CreateNetwork {
 
 				Node fromNode = net.getNodes().get(fromID);
 				Node toNode = net.getNodes().get(toID);
-
+//				double euclideanDistance = NetworkUtils.getEuclideanDistance(fromNode.getCoord(), toNode.getCoord());
+//				euclideanDistance = euclideanDistance > jerusalemLink.getLength() ? euclideanDistance
+//						: jerusalemLink.getLength();
 				link = fac.createLink(Id.createLinkId(linkId), fromNode, toNode);
-				double travelTime = jerusalemLink.getLength() / jerusalemLink.getFreeSpeed();
-				setLinkAttributes(link, jerusalemLink.getCapacity(), jerusalemLink.getLength(), travelTime,
-						jerusalemLink.getMode(), jerusalemLink.getLaneNum());
+//				double travelTime = euclideanDistance / jerusalemLink.getFreeSpeed();
+				setLinkAttributes(link, jerusalemLink.getCapacity(), jerusalemLink.getLength(),
+						jerusalemLink.getFreeSpeed(), jerusalemLink.getMode(), jerusalemLink.getLaneNum());
+//				link.getAttributes().putAttribute("roadType", jerusalemLink.getRoadType());
 			}
 			net.addLink(link);
 		}
@@ -263,14 +277,14 @@ public class CreateNetwork {
 	 * @param travelTime on link
 	 * @param modes      a set of allowed modes
 	 */
-	private static void setLinkAttributes(Link link, double capacity, double length, double travelTime,
+	private static void setLinkAttributes(Link link, double capacity, double length, double freespeed,
 			Set<String> modes, double numberOfLanes) {
 		link.setCapacity(capacity);
 		link.setLength(length);
 
 		// agents have to reach the end of the link before the time step ends to
 		// be able to travel forward in the next time step (matsim time step logic)
-		link.setFreespeed(link.getLength() / (travelTime - 0.1));
+		link.setFreespeed(freespeed);
 		link.setAllowedModes(modes);
 		link.setNumberOfLanes(numberOfLanes);
 	}
