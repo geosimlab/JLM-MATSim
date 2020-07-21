@@ -28,6 +28,7 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.filter.NetworkFilterManager;
 import org.matsim.core.network.filter.NetworkLinkFilter;
+import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacilities;
@@ -74,14 +75,18 @@ public class HouseholdPlayground {
 			+ ".facilities.xml.gz";
 	public final static String FAMILY_VEHICLES_OUTPUT_PATH = props.getProperty("folder.output_folder")
 			+ FAMILY_VEHICLES_ID + ".family_vehicles.xml.gz";
+	public static String NETWORK_OUTPUT_PATH;
+	public static String NETWORK_ID;
 
 	public static void main(String[] args) throws SQLException {
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		Config config = ConfigUtils.createConfig();
-
 		Scenario scenario = ScenarioUtils.createScenario(config);
-		CreateNetwork createNetwork = new CreateNetwork();
+		CreateNetwork createNetwork = new CreateNetwork(Double.parseDouble(args[0]),Double.parseDouble(args[1]),Integer.parseInt(args[2]));
 		Network network = createNetwork.getJlmNet();
+		new NetworkWriter(network).write(createNetwork.getPath());
+		NETWORK_OUTPUT_PATH = createNetwork.getPath();
+		NETWORK_ID = createNetwork.getId();
 		Population population = createPersons(scenario, con);
 		ArrayList<Object> temp1 = createHouseholds(scenario, con);
 		Households households = (Households) temp1.get(0);
@@ -137,7 +142,8 @@ public class HouseholdPlayground {
 	 * @throws SQLException
 	 */
 	public static Population createPersons(Scenario scenario, Connection con) throws SQLException {
-		PreparedStatement pst = con.prepareStatement("SELECT * FROM persons;");
+//		PreparedStatement pst = con.prepareStatement("select * from persons where hhid in (select hhid from households h2 where hometaz >1000);");
+		PreparedStatement pst = con.prepareStatement("select * from persons;");
 		ResultSet resultSet = pst.executeQuery();
 		Population population = scenario.getPopulation();
 		PopulationFactory populationFactory = population.getFactory();
@@ -169,6 +175,7 @@ public class HouseholdPlayground {
 	 */
 	public static ArrayList<Object> createHouseholds(Scenario scenario, Connection con) throws SQLException {
 		PreparedStatement pst = con.prepareStatement("SELECT * FROM households;");
+//		PreparedStatement pst = con.prepareStatement("SELECT * FROM households where hometaz > 1000;");
 		ResultSet resultSet = pst.executeQuery();
 		HouseholdsImpl households = (HouseholdsImpl) scenario.getHouseholds();
 		HouseholdsFactory householdsFactory = households.getFactory();
@@ -193,6 +200,7 @@ public class HouseholdPlayground {
 			IncomeImpl income = new IncomeImpl(resultSet.getInt("hhincomedollars"), Income.IncomePeriod.month);
 			household.setIncome(income);
 			// setting homeTAZ
+//			TODO here change aggragate taz
 			HouseholdUtils.putHouseholdAttribute(household, "HomeTAZ", "" + resultSet.getInt("hometaz"));
 			HouseholdUtils.putHouseholdAttribute(household, "sector", "" + resultSet.getInt("sector"));
 			// setting members
@@ -237,6 +245,7 @@ public class HouseholdPlayground {
 		log.info("Reading taz numbers, creating containers");
 		while (resultSet.next()) {
 			TazFacilities tazFacilities = new TazFacilities();
+//			TODO here change aggragate taz
 			facilities.getAttributes().putAttribute("" + resultSet.getInt("taz"), tazFacilities);
 		}
 		String query = "select st_x(centroid) x, st_y(centroid) y, hometaz,households_at_bldg,uniq_id from bental_households;";
@@ -381,8 +390,10 @@ public class HouseholdPlayground {
 		con.setAutoCommit(false);
 		Statement statement = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		statement.setFetchSize(50000);
+//		ResultSet resultSet = statement.executeQuery(
+//				" select hhid,pnum,personTripNum,origpurp,finalDepartMinute,origtaz,modeCode from trips where origtaz > 1000 and hhid in (select hhid from households where hometaz > 1000);");
 		ResultSet resultSet = statement.executeQuery(
-				"select hhid,pnum,personTripNum,origpurp,finalDepartMinute,origtaz,modeCode from trips order by hhid,pnum,personTripNum;");
+				" select hhid,pnum,personTripNum,origpurp,finalDepartMinute,origtaz,modeCode from trips");
 		// TODO trips has major problems. just notice they are repaired
 		PopulationFactory populationFactory = population.getFactory();
 		Person person = null;
