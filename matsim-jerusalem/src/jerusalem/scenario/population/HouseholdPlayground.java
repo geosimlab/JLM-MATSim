@@ -57,7 +57,6 @@ import org.matsim.vehicles.Vehicles;
 
 import jerusalem.scenario.DbInitialize;
 import jerusalem.scenario.DbUtils;
-import jerusalem.scenario.archive.PopUtils;
 import jerusalem.scenario.network.CreateNetwork;
 
 public class HouseholdPlayground {
@@ -430,7 +429,7 @@ public class HouseholdPlayground {
 				Object[] values = tazFacilities.toArray();
 				Id<ActivityFacility> randomFacilityId = (Id<ActivityFacility>) values[generator.nextInt(values.length)];
 				activity = populationFactory.createActivityFromActivityFacilityId(activityType, randomFacilityId);
-				// TODO check if prohibted road types are excluded				
+				// TODO check if prohibited road types are excluded				
 				activity.setCoord(facilities.getFacilities().get(randomFacilityId).getCoord());
 				activity.setLinkId(facilities.getFacilities().get(randomFacilityId).getLinkId());
 			}

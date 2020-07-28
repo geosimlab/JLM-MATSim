@@ -30,7 +30,7 @@ public class RunJerusalem {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	final public static Properties props = DbUtils.readProperties("database.properties");
 	final public static String OUTPUT_FOLDER = props.getProperty("folder.output_folder");
-	final public static String RUN_ID = "/stuck_time_10";
+	final public static String RUN_ID = "" + 1;
 
 	public static void main(String[] args) {
 		// create a new MATSim config for JLM
@@ -54,7 +54,7 @@ public class RunJerusalem {
 	public static Config createJeruslaemConfig() {
 		Config config = ConfigUtils.createConfig();
 
-		config.network().setInputFile("D:/matsim_jlm/output/increased_storge_cap_0.0_decay_0.0_min_flow_capcity_500.network.xml.gz");
+		config.network().setInputFile(CreateNetwork.NETWORK_ID);
 		config.plans().setInputFile(HouseholdPlayground.POPULATION_OUTPUT_PATH);
 		config.facilities().setInputFile(HouseholdPlayground.FACILITIES_OUTPUT_PATH);
 		config.households().setInputFile(HouseholdPlayground.HOUSEHOLDS_OUTPUT_PATH);
