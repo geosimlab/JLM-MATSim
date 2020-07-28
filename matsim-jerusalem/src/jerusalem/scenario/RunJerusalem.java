@@ -21,7 +21,7 @@ import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import jerusalem.scenario.network.CreateNetwork;
-import jerusalem.scenario.test.HouseholdPlayground;
+import jerusalem.scenario.population.HouseholdPlayground;
 
 /**
  * @author Golan Ben-Dor
@@ -30,11 +30,10 @@ public class RunJerusalem {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	final public static Properties props = DbUtils.readProperties("database.properties");
 	final public static String OUTPUT_FOLDER = props.getProperty("folder.output_folder");
-	final public static String RUN_ID = "/" + HouseholdPlayground.NETWORK_ID;
+	final public static String RUN_ID = "/stuck_time_10";
 
 	public static void main(String[] args) {
 		// create a new MATSim config for JLM
-//		log.getRootLogger().setLevel(Level.DEBUG);
 		Config config = createJeruslaemConfig();
 
 		Scenario scenario = ScenarioUtils.loadScenario(config);
@@ -55,20 +54,20 @@ public class RunJerusalem {
 	public static Config createJeruslaemConfig() {
 		Config config = ConfigUtils.createConfig();
 
-		config.network().setInputFile(HouseholdPlayground.NETWORK_OUTPUT_PATH);
+		config.network().setInputFile("D:/matsim_jlm/output/increased_storge_cap_0.0_decay_0.0_min_flow_capcity_500.network.xml.gz");
 		config.plans().setInputFile(HouseholdPlayground.POPULATION_OUTPUT_PATH);
 		config.facilities().setInputFile(HouseholdPlayground.FACILITIES_OUTPUT_PATH);
 		config.households().setInputFile(HouseholdPlayground.HOUSEHOLDS_OUTPUT_PATH);
 		config.vehicles().setVehiclesFile(HouseholdPlayground.FAMILY_VEHICLES_OUTPUT_PATH);
 
 		// modify controler
-		config.controler().setWriteEventsInterval(30);
-		config.controler().setWritePlansInterval(30);
+		config.controler().setWriteEventsInterval(25);
+		config.controler().setWritePlansInterval(1000);
 		config.controler().setEventsFileFormats(EnumSet.of(EventsFileFormat.xml));
 		config.controler().setOutputDirectory(OUTPUT_FOLDER + RUN_ID + "/");
 		config.controler().setOverwriteFileSetting(OverwriteFileSetting.overwriteExistingFiles);
 		config.controler().setFirstIteration(1);
-		config.controler().setLastIteration(300);
+		config.controler().setLastIteration(100);
 		config.controler().setMobsim("qsim");
 		config.controler().setRoutingAlgorithmType(RoutingAlgorithmType.FastAStarLandmarks);
 		config.controler().setRunId(RUN_ID);
@@ -77,13 +76,13 @@ public class RunJerusalem {
 		config.qsim().setStartTime(0.0);
 		config.qsim().setEndTime(30 * 3600);
 		config.qsim().setFlowCapFactor(0.3);
-		config.qsim().setStorageCapFactor(0.6);
+		config.qsim().setStorageCapFactor(Math.pow(0.3, 0.75));
 		config.qsim().setNumberOfThreads(8);
 		config.qsim().setSnapshotPeriod(1);
-		config.qsim().setStuckTime(3600);
-		config.qsim().setRemoveStuckVehicles(false);
+		config.qsim().setStuckTime(10);//30,60 or multiply by 60
+		config.qsim().setRemoveStuckVehicles(true);
 		config.qsim().setTimeStepSize(1);
-		config.qsim().setTrafficDynamics(TrafficDynamics.queue);
+		config.qsim().setTrafficDynamics(TrafficDynamics.queue);// kinematic waves
 		config.qsim().setMainModes(Arrays.asList(TransportMode.car));
 		config.qsim().setInsertingWaitingVehiclesBeforeDrivingVehicles(true);
 
