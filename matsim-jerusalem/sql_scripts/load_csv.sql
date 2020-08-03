@@ -3,7 +3,7 @@ SET search_path TO "$user", postgis, topology, public;
 DROP TABLE IF EXISTS trips, taz_centroid, persons,households, 
 households_final,taz600,bldg,poi_bldg ,inner_taz,bldg_cent,
 bental_households,bental_jtmt_code_conversion,nodes,links,line_path,lines,headway,headway_periods,
-vehicle_types,households_in_polygon,households_final,trips_final,stops,pt_routes,amenities,readable_headway,jtmt_matsim_code_conversion CASCADE;
+vehicle_types,households_in_polygon,households_final,trips_final,stops,pt_routes,amenities,readable_headway,jtmt_matsim_code_conversion,detailed_headway CASCADE;
 CREATE TABLE IF NOT EXISTS households (
   hhid INT NOT NULL CHECK (hhid >= 0),
   pumsSerialNo real NOT NULL CHECK (pumsSerialNo >= 0),
@@ -164,6 +164,11 @@ CREATE TABLE IF NOT EXISTS links(
 
 CREATE TABLE IF NOT EXISTS vehicle_types(
     vehicle_code integer NOT NULL,
+    name varchar(15) NOT NULL,
+    TAU_name varchar(100) NOT NULL,
+    auto_equ double precision NOT NULL,
+    capsitting integer,
+    captotal integer,
     vehicle_type varchar(100) NOT NULL,
     board_coef double precision NOT NULL,
     disembark_coef double precision NOT null,
@@ -206,6 +211,30 @@ CREATE TABLE IF NOT EXISTS headway(
     primary key (line),
     foreign key (line) references lines(lines)
 );
+
+CREATE TABLE IF NOT EXISTS detailed_headway(
+    line varchar(7) NOT NULL,
+    mode varchar(1) NOT NULL,
+    headway double precision NOT NULL,
+    direction integer NOT null,
+    LineWoDirection varchar(7) NOT NULL,
+    HeadwayDir1 double precision,
+	HeadwayDir2 double precision,
+	HeadwayDir3 double precision,
+    first_period double precision NOT NULL,
+    second_period double precision NOT NULL,
+    third_period double precision NOT NULL,
+    fourth_period double precision NOT NULL,
+    fifth_period double precision NOT NULL,
+    sixth_period double precision NOT NULL,
+    seventh_period double precision NOT NULL,
+    eighth_period double precision NOT NULL,
+    ninth_period double precision NOT NULL,
+    tenth_period double precision NOT null,
+    primary key (line),
+    foreign key (line) references lines(lines)
+);
+
 
 CREATE TABLE IF NOT EXISTS headway_periods(
 	headway_period varchar(20) not null,

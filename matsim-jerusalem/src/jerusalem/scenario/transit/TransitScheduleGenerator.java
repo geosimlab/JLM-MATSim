@@ -46,11 +46,18 @@ import jerusalem.scenario.DbUtils;
 public class TransitScheduleGenerator {
 	private static final Logger log = Logger.getLogger(TransitScheduleGenerator.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
+	public final static String TRANSIT_ID = "4";
 
+	/**
+	 * @param transitSchedule
+	 * @return
+	 * @throws SQLException
+	 */
 	public static TransitSchedule createStops(TransitSchedule transitSchedule) throws SQLException {
 		log.info("Creating Stops");
 		TransitScheduleFactory builder = transitSchedule.getFactory();
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
+//		stops is a table created by create_stops.sql
 		PreparedStatement pst = con.prepareStatement("SELECT * FROM stops;");
 		ResultSet resultSet = pst.executeQuery();
 		while (resultSet.next()) {
@@ -80,7 +87,9 @@ public class TransitScheduleGenerator {
 		Id<Link> startLinkId = null;
 		double passing_time = 0;
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
-		PreparedStatement pst = con.prepareStatement("SELECT * FROM pt_routes;");
+//		pt_routes is a table created by create_pt_routes.sql
+//		TODO note that query takes out some of the lines, because detailed_headway is missing some of the lines. fix it when new file arrives
+		PreparedStatement pst = con.prepareStatement("SELECT * FROM pt_routes where line in (select line from detailed_headway);");
 		ResultSet resultSet = pst.executeQuery();
 
 		while (resultSet.next()) {
@@ -96,6 +105,7 @@ public class TransitScheduleGenerator {
 //				adding a stop on link, if stop exists
 				Id<TransitStopFacility> stopId = Id.create(resultSet.getString("linkid"), TransitStopFacility.class);
 				TransitStopFacility stop = transitSchedule.getFacilities().get(stopId);
+//				TODO talk to golan about stalling time
 				TransitRouteStop routeStop = builder.createTransitRouteStop(stop, passing_time, passing_time);
 				passing_time = passing_time + resultSet.getDouble("passing_time");
 				stops.add(routeStop);
@@ -129,28 +139,40 @@ public class TransitScheduleGenerator {
 	}
 
 	/**
+	 * @param k
 	 * @return
 	 * @throws SQLException
 	 */
-	public static Vehicles createVehicleTypes() throws SQLException {
+	public static Vehicles createVehicleTypes(double k, boolean rescale_bus) throws SQLException {
 		log.info("Creating Vehicle types");
 		Vehicles veh = VehicleUtils.createVehiclesContainer();
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		PreparedStatement pst = con.prepareStatement("SELECT * FROM vehicle_types;");
 		ResultSet resultSet = pst.executeQuery();
 		while (resultSet.next()) {
-			Id<VehicleType> vehTypeId = Id.create(resultSet.getString("vehicle_type"), VehicleType.class);
+			Id<VehicleType> vehTypeId = Id.create(resultSet.getString("tau_name"), VehicleType.class);
 			VehicleType type = veh.getFactory().createVehicleType(vehTypeId);
+			type.setDescription(resultSet.getString("vehicle_type"));
 			VehicleCapacity cap = type.getCapacity();
-//			TODO add columns with data about vehicles to vehicle_types table
-			cap.setSeats(50);
-//			cap.setStandingRoom(standingRoom);
-//			type.setLength(length);
-//			VehicleUtils.setDoorOperationMode(type, doorOperationMode);
-
-//			type.setMaximumVelocity(maxVelocity);
-//			type.setPcuEquivalents(pcu);
-
+			int seats = resultSet.getInt("capsitting");
+			int total_cap = resultSet.getInt("captotal");
+			int standing = total_cap - seats;
+			double pcu = resultSet.getDouble("auto_equ");
+			double accessTime = resultSet.getDouble("board_coef");
+			double egressTime = resultSet.getDouble("disembark_coef");
+			cap.setSeats((int) Math.round(seats*k));
+			cap.setStandingRoom((int) Math.round(standing*k));
+			
+			if (rescale_bus) {
+				type.setPcuEquivalents(pcu*k);
+				type.setLength(pcu*k*7.5);
+				}
+			else {
+				type.setPcuEquivalents(pcu);
+				type.setLength(pcu*7.5);
+			}
+			VehicleUtils.setAccessTime(type, accessTime);
+			VehicleUtils.setEgressTime(type, egressTime);
 			veh.addVehicleType(type);
 			System.out.println(type.getId());
 		}
@@ -168,6 +190,7 @@ public class TransitScheduleGenerator {
 		log.info("Creating Vehicles and departures");
 		TransitScheduleFactory builder = transitSchedule.getFactory();
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
+//		readable_headway is a table created by create_readable_headway.sql
 		PreparedStatement pst = con.prepareStatement("SELECT * FROM readable_headway;");
 		ResultSet resultSet = pst.executeQuery();
 		while (resultSet.next()) {
@@ -188,7 +211,7 @@ public class TransitScheduleGenerator {
 				String id = lineNo + "_" + TransitUtils.strFromSec(firstDepartureTime + i * headway_sec);
 				log.info("Creating departure: " + id);
 				Id<Vehicle> vehicleId = Id.create(id, Vehicle.class);
-				Id<VehicleType> vehTypeId = Id.create(resultSet.getString("vehicle_type"), VehicleType.class);
+				Id<VehicleType> vehTypeId = Id.create(resultSet.getString("tau_name"), VehicleType.class);
 				Vehicle vehicle = vehicles.getFactory().createVehicle(vehicleId,
 						vehicles.getVehicleTypes().get(vehTypeId));
 				vehicles.addVehicle(vehicle);
@@ -215,14 +238,14 @@ public class TransitScheduleGenerator {
 		TransitSchedule transitSchedule = sc.getTransitSchedule();
 		TransitSchedule transitResult = createStops(transitSchedule);
 		transitResult = createTransitLines(transitSchedule);
-		Vehicles vehiclesResult = createVehicleTypes();
+		Vehicles vehiclesResult = createVehicleTypes(1,true);
 		ArrayList<Object> temp = createVehiclesAndDepartures(transitResult, vehiclesResult);
 		transitResult = (TransitSchedule) temp.get(0);
 		vehiclesResult = (Vehicles) temp.get(1);
 		new TransitScheduleWriter(transitResult)
-				.writeFile(props.getProperty("folder.output_folder") + "transitschedule1.xml");
+				.writeFile(props.getProperty("folder.output_folder") + TRANSIT_ID + ".transitschedule.xml.gz");
 
-		new MatsimVehicleWriter(vehiclesResult).writeFile(props.getProperty("folder.output_folder") + "vehicles1.xml");
+		new MatsimVehicleWriter(vehiclesResult).writeFile(props.getProperty("folder.output_folder") + TRANSIT_ID + ".vehicles.xml.gz");
 //		
 	}
 }

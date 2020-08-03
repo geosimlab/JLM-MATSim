@@ -16,4 +16,9 @@ left join second_table
 using (hhid,pnum);
 
 
+
 with first_table as(select distinct hhid,pnum from trips where origtaz in (3,14,15,304,409)), second_table as(select hhid,pnum,personTripNum,origpurp,finalDepartMinute,origtaz,modeCode from trips) select count(second_table.*) from first_table left join second_table using (hhid,pnum);
+select lines from lines where lines not in (select line from detailed_headway);
+select line from detailed_headway where line not in (select lines from lines);
+select * from readable_headway rh where start_time like '21%';
+

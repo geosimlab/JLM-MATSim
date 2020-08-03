@@ -1,13 +1,13 @@
-vehicle_code,vehicle_type,board_coef,disembark_coef
-1,Intercity  (high-floor),0.06,0.05
-2,bulletproof buses (high-floor),0.06,0.05
-3,12m (low-floor),0.05,0.024
-4,12m (0.5-low-floor),0.054,0.026
-5,18m (articulated) 3-door  (low-floor),0.05,0.024
-6,19m (articulated) 4-door  (low-floor),0.05,0.024
-7,Minibus (low-floor) - Egged,0.05,0.024
-8,Minibus (low-floor) - East Jerusalem,0.05,0.024
-9,2-car Citadis LRT  (Level platform),0.016,0.012
-10,1-car Citadis LRT  (Level platform),0.016,0.012
-11,Deisel (Level platform),0.016,0.012
-12,Electric (Level platform),0.016,0.012
+vehicle_code,name,TAU_name,auto_equ,CapSitting,CapTotal,vehicle_type,board_coef,disembark_coef
+1,Inter12HF,inter_urban_bus,2,55,70,Intercity  (high-floor),0.06,0.05
+2,Inter12HFB,inter_urban_bus_bulletproof,2,45,45,bulletproof buses (high-floor),0.06,0.05
+3,Urban12LF,urban_bus,2,35,75,12m (low-floor),0.05,0.024
+4,Urban12IF,urban_bus_stair,2,35,70,12m (0.5-low-floor),0.054,0.026
+5,Urban18LF,Urban_bus_3_doors,3,55,120,18m (articulated) 3-door  (low-floor),0.05,0.024
+6,Urban19LF,Urban_bus_4_doors,3,55,130,19m (articulated) 4-door  (low-floor),0.05,0.024
+7,Urban08LF,minibus_egged,1.5,15,30,Minibus (low-floor) - Egged,0.05,0.024
+8,Urban10LF,minibus_east_jlm,1.5,20,35,Minibus (low-floor) - East Jerusalem,0.05,0.024
+9,Urban34LP,lrt_1_car,2,100,225,1-car Citadis LRT  (Level platform),0.016,0.012
+10,Urabn64LP,lrt_2_cars,4,200,450,2-car Citadis LRT  (Level platform),0.016,0.012
+11,Inter99LPE,rail_diesel,10,500,700,Deisel (Level platform),0.016,0.012
+12,Inter99LPD,rail_electric,10,500,700,Electric (Level platform),0.016,0.012

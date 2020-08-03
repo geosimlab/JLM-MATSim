@@ -55,7 +55,6 @@ public class CreateNetwork {
 	private final static boolean REMOVE_LOCAL_STREETS = false;
 
 	private Network NET;
-	//	TODO unless we use objects as inputs, this is unnecessary
 	public CreateNetwork() {
 		try {
 			Network newNetwork = createJLMNet();

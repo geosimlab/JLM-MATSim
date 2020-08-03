@@ -53,6 +53,7 @@ public class DbInitialize {
 		copyTableFromCSV(props.getProperty("transit.lines_path"), "lines", con);
 		copyTableFromCSV(props.getProperty("transit.line_path_path"), "line_path", con);
 		copyTableFromCSV(props.getProperty("transit.headway_path"), "headway", con);
+		copyTableFromCSV(props.getProperty("transit.headway_path2"), "detailed_headway", con);
 		copyTableFromCSV(own_path + "/data/headway_periods.csv", "headway_periods", con);
 
 		// copy tables from shp/gdb
