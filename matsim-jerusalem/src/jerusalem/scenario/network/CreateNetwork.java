@@ -47,11 +47,11 @@ public class CreateNetwork {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
 	private final static int MIN_FLOW_CAPACITY = 500;
-	public final static String NETWORK_ID = "9";
+	public final static String NETWORK_ID = "11";
 	public final static String NETWORK_OUTPUT_PATH = props.getProperty("folder.output_folder") + NETWORK_ID
 			+ ".network.xml.gz";
 	private final static boolean REMOVE_CONNECTOR = true;
-	private final static boolean REMOVE_WALK_LINKS = true;
+	private final static boolean REMOVE_WALK_LINKS = false;
 	private final static boolean REMOVE_LOCAL_STREETS = false;
 
 	private Network NET;

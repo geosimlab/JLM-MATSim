@@ -54,11 +54,10 @@ public class RunJerusalem {
 	public static Config createJeruslaemConfig() {
 		Config config = ConfigUtils.createConfig();
 
-		config.network().setInputFile(CreateNetwork.NETWORK_ID);
+		config.network().setInputFile(CreateNetwork.NETWORK_OUTPUT_PATH);
 		config.plans().setInputFile(HouseholdPlayground.POPULATION_OUTPUT_PATH);
 		config.facilities().setInputFile(HouseholdPlayground.FACILITIES_OUTPUT_PATH);
 		config.households().setInputFile(HouseholdPlayground.HOUSEHOLDS_OUTPUT_PATH);
-		config.vehicles().setVehiclesFile(HouseholdPlayground.FAMILY_VEHICLES_OUTPUT_PATH);
 
 		// modify controler
 		config.controler().setWriteEventsInterval(25);

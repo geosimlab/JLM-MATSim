@@ -80,11 +80,11 @@ where fake;
 
 
 --query to load links to network
---select l.i,fa.geometry geoma,l.j,fb.geometry geomb, st_makeline(fa.geometry,fb.geometry) line, l.mode, l.length_met
---from links l
---left join nodes fa
---on l.i = fa.i::integer
---left join nodes fb
+--select l.*,st_makeline(fa.geometry,fb.geometry) line 
+--from links l 
+--left join nodes fa 
+--on l.i = fa.i::integer 
+--left join nodes fb 
 --on l.j = fb.i::integer
  
  --creating indices

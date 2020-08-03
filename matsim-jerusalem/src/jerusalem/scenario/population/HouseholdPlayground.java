@@ -81,7 +81,7 @@ public class HouseholdPlayground {
 		Config config = ConfigUtils.createConfig();
 		Scenario scenario = ScenarioUtils.createScenario(config);
 		Network network = new CreateNetwork().getJlmNet();
-		new NetworkWriter(network).write(CreateNetwork.NETWORK_ID);
+		new NetworkWriter(network).write(CreateNetwork.NETWORK_OUTPUT_PATH);
 		Population population = createPersons(scenario, con);
 		ArrayList<Object> temp1 = createHouseholds(scenario, con);
 		Households households = (Households) temp1.get(0);
@@ -99,7 +99,7 @@ public class HouseholdPlayground {
 		new FacilitiesWriter(facilities).write(FACILITIES_OUTPUT_PATH);
 		new HouseholdsWriterV10(households).writeFile(HOUSEHOLDS_OUTPUT_PATH);
 		new PopulationWriter(population).write(POPULATION_OUTPUT_PATH);
-		new MatsimVehicleWriter(vehicles).writeFile(FAMILY_VEHICLES_OUTPUT_PATH);
+//		new MatsimVehicleWriter(vehicles).writeFile(FAMILY_VEHICLES_OUTPUT_PATH);
 	}
 
 	/**
