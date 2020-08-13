@@ -93,8 +93,6 @@ public class RunJerusalemCarPt {
 		config.controler().setRoutingAlgorithmType(RoutingAlgorithmType.FastAStarLandmarks);
 		config.controler().setRunId(RUN_ID);
 		
-		
-
 		// modify Qsim
 		config.qsim().setStartTime(0.0);
 		config.qsim().setEndTime(30 * 3600);
