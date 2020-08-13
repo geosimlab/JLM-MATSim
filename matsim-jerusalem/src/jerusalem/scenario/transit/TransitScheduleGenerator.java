@@ -46,7 +46,7 @@ import jerusalem.scenario.DbUtils;
 public class TransitScheduleGenerator {
 	private static final Logger log = Logger.getLogger(TransitScheduleGenerator.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
-	public final static String TRANSIT_ID = "4";
+	public final static String TRANSIT_ID = "5";
 
 	/**
 	 * @param transitSchedule
@@ -238,7 +238,7 @@ public class TransitScheduleGenerator {
 		TransitSchedule transitSchedule = sc.getTransitSchedule();
 		TransitSchedule transitResult = createStops(transitSchedule);
 		transitResult = createTransitLines(transitSchedule);
-		Vehicles vehiclesResult = createVehicleTypes(1,true);
+		Vehicles vehiclesResult = createVehicleTypes(0.3,false);
 		ArrayList<Object> temp = createVehiclesAndDepartures(transitResult, vehiclesResult);
 		transitResult = (TransitSchedule) temp.get(0);
 		vehiclesResult = (Vehicles) temp.get(1);

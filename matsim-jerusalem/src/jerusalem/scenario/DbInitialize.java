@@ -55,6 +55,7 @@ public class DbInitialize {
 		copyTableFromCSV(props.getProperty("transit.headway_path"), "headway", con);
 		copyTableFromCSV(props.getProperty("transit.headway_path2"), "detailed_headway", con);
 		copyTableFromCSV(own_path + "/data/headway_periods.csv", "headway_periods", con);
+		copyTableFromCSV(props.getProperty("counts.counts_path"), "counts", con);
 
 		// copy tables from shp/gdb
 		String copyTAZShp = "ogr2ogr -progress -overwrite -f \"PostgreSQL\" -a_srs \"EPSG:2039\" PG:\"host=" + db_url
@@ -78,6 +79,8 @@ public class DbInitialize {
 		executeSQLFromFile(own_path + "/sql_scripts/create_stops.sql", con);
 		executeSQLFromFile(own_path + "/sql_scripts/create_pt_routes.sql", con);
 		executeSQLFromFile(own_path + "/sql_scripts/create_readable_headway.sql", con);
+		executeSQLFromFile(own_path + "/sql_scripts/create_counts_data.sql", con);
+//		TODO add counts
 	}
 
 	/**

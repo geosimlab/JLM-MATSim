@@ -3,7 +3,7 @@ SET search_path TO "$user", postgis, topology, public;
 DROP TABLE IF EXISTS trips, taz_centroid, persons,households, 
 households_final,taz600,bldg,poi_bldg ,inner_taz,bldg_cent,
 bental_households,bental_jtmt_code_conversion,nodes,links,line_path,lines,headway,headway_periods,
-vehicle_types,households_in_polygon,households_final,trips_final,stops,pt_routes,amenities,readable_headway,jtmt_matsim_code_conversion,detailed_headway CASCADE;
+vehicle_types,households_in_polygon,households_final,trips_final,stops,pt_routes,amenities,readable_headway,jtmt_matsim_code_conversion,detailed_headway,counts CASCADE;
 CREATE TABLE IF NOT EXISTS households (
   hhid INT NOT NULL CHECK (hhid >= 0),
   pumsSerialNo real NOT NULL CHECK (pumsSerialNo >= 0),
@@ -241,5 +241,40 @@ CREATE TABLE IF NOT EXISTS headway_periods(
 	start_time varchar(20) not null,
 	end_time varchar(20) not null,
 	primary key (headway_period)
+);
+--I deleted "type" column from the original csv, in order to prevent parsing errors
+create table if not exists counts(
+	linkID integer not null,
+	CID integer not null, 
+	A integer not null,
+	B integer not null,
+	COUNTDATE date not null,
+	factor double precision not null,
+	AB0600 double precision NOT NULL,
+	BA0600 double precision NOT NULL,
+	AB0700 double precision NOT NULL,
+	BA0700 double precision NOT NULL,
+	AB0800 double precision NOT NULL,
+	BA0800 double precision NOT NULL,
+	AB0900 double precision NOT NULL,
+	BA0900 double precision NOT NULL,
+	AB1000 double precision NOT NULL,
+	BA1000 double precision NOT NULL,
+	AB1100 double precision NOT NULL,
+	BA1100 double precision NOT NULL,
+	AB1200 double precision NOT NULL,
+	BA1200 double precision NOT NULL,
+	AB1300 double precision NOT NULL,
+	BA1300 double precision NOT NULL,
+	AB1400 double precision NOT NULL,
+	BA1400 double precision NOT NULL,
+	AB1500 double precision NOT NULL,
+	BA1500 double precision NOT NULL,
+	AB1600 double precision NOT NULL,
+	BA1600 double precision NOT NULL,
+	AB1700 double precision NOT NULL,
+	BA1700 double precision NOT NULL,
+	AB1800 double precision NOT NULL,
+	BA1800 double precision NOT NULL
 );
 
