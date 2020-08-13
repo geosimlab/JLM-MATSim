@@ -1,4 +1,4 @@
-package jerusalem.scenario.network;
+package jerusalem.scenario.archive;
 
 import java.util.HashSet;
 import java.util.Set;

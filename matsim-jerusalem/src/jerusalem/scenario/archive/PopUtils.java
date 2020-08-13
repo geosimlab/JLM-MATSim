@@ -1,4 +1,4 @@
-package jerusalem.scenario.population;
+package jerusalem.scenario.archive;
 
 /**
  * @author Ido Klein

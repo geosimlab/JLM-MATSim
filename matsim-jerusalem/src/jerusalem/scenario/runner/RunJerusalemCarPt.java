@@ -1,4 +1,4 @@
-package jerusalem.scenario;
+package jerusalem.scenario.runner;
 
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -20,17 +20,32 @@ import org.matsim.core.controler.OutputDirectoryHierarchy.OverwriteFileSetting;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
+import jerusalem.scenario.DbUtils;
 import jerusalem.scenario.network.CreateNetwork;
 import jerusalem.scenario.population.HouseholdPlayground;
 
 /**
  * @author Golan Ben-Dor
  */
-public class RunJerusalem {
+public class RunJerusalemCarPt {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	final public static Properties props = DbUtils.readProperties("database.properties");
 	final public static String OUTPUT_FOLDER = props.getProperty("folder.output_folder");
-	final public static String RUN_ID = "" + 1;
+	
+	final public static String INPUT_NETWORK = "E:\\geosimlab\\MATSim-JLM\\MATSim-JLM Input\\network\\11.network.xml.gz";
+	final public static String INPUT_FACILITES = "E:\\geosimlab\\MATSim-JLM\\MATSim-JLM Input\\facilites\\1.facilities.xml.gz";
+	final public static String INPUT_POPULATION = "E:\\geosimlab\\MATSim-JLM\\MATSim-JLM Input\\population\\4.population.xml.gz";
+	final public static String INPUT_HOUSEHOLDS = "E:\\geosimlab\\MATSim-JLM\\MATSim-JLM Input\\households\\1.households.xml.gz";
+	final public static String INPUT_TRANSIT_SCHEDULE = "E:\\geosimlab\\MATSim-JLM\\MATSim-JLM Input\\transit\\4\\4.transitschedule.xml.gz";
+	final public static String INPUT_TRANSIT_VEHICLES = "E:\\geosimlab\\MATSim-JLM\\MATSim-JLM Input\\transit\\4\\4.vehicles.xml.gz";
+
+
+//	"E:\geosimlab\MATSim-JLM\MATSim-JLM Input\households\1.households.xml.gz"
+//	"E:\geosimlab\MATSim-JLM\MATSim-JLM Input\facilites\1.facilities.xml.gz"
+//	"E:\geosimlab\MATSim-JLM\MATSim-JLM Input\population\4.population.xml.gz"
+	final public static String RUN_ID = "/" + 14;
 
 	public static void main(String[] args) {
 		// create a new MATSim config for JLM
@@ -39,6 +54,13 @@ public class RunJerusalem {
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 
 		Controler controler = new Controler(scenario);
+		
+		// Add raptor
+		controler.addOverridingModule(new SwissRailRaptorModule());
+
+		
+        SwissRailRaptorConfigGroup raptorConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
+        
 
 		controler.run();
 	}
@@ -54,48 +76,55 @@ public class RunJerusalem {
 	public static Config createJeruslaemConfig() {
 		Config config = ConfigUtils.createConfig();
 
-		config.network().setInputFile(CreateNetwork.NETWORK_OUTPUT_PATH);
-		config.plans().setInputFile(HouseholdPlayground.POPULATION_OUTPUT_PATH);
-		config.facilities().setInputFile(HouseholdPlayground.FACILITIES_OUTPUT_PATH);
-		config.households().setInputFile(HouseholdPlayground.HOUSEHOLDS_OUTPUT_PATH);
+		config.network().setInputFile(INPUT_NETWORK);
+		config.plans().setInputFile(INPUT_POPULATION);
+		config.facilities().setInputFile(INPUT_FACILITES);
+		config.households().setInputFile(INPUT_HOUSEHOLDS);
 
 		// modify controler
 		config.controler().setWriteEventsInterval(25);
-		config.controler().setWritePlansInterval(1000);
+		config.controler().setWritePlansInterval(25);
 		config.controler().setEventsFileFormats(EnumSet.of(EventsFileFormat.xml));
 		config.controler().setOutputDirectory(OUTPUT_FOLDER + RUN_ID + "/");
 		config.controler().setOverwriteFileSetting(OverwriteFileSetting.overwriteExistingFiles);
-		config.controler().setFirstIteration(1);
-		config.controler().setLastIteration(100);
+		config.controler().setFirstIteration(0);
+		config.controler().setLastIteration(300);
 		config.controler().setMobsim("qsim");
 		config.controler().setRoutingAlgorithmType(RoutingAlgorithmType.FastAStarLandmarks);
 		config.controler().setRunId(RUN_ID);
-
+		
 		// modify Qsim
 		config.qsim().setStartTime(0.0);
 		config.qsim().setEndTime(30 * 3600);
 		config.qsim().setFlowCapFactor(0.3);
 		config.qsim().setStorageCapFactor(Math.pow(0.3, 0.75));
-		config.qsim().setNumberOfThreads(8);
+		config.qsim().setNumberOfThreads(12);
 		config.qsim().setSnapshotPeriod(1);
 		config.qsim().setStuckTime(10);//30,60 or multiply by 60
-		config.qsim().setRemoveStuckVehicles(true);
+		config.qsim().setRemoveStuckVehicles(false);
 		config.qsim().setTimeStepSize(1);
-		config.qsim().setTrafficDynamics(TrafficDynamics.queue);// kinematic waves
+		config.qsim().setTrafficDynamics(TrafficDynamics.kinematicWaves);// kinematic waves
 		config.qsim().setMainModes(Arrays.asList(TransportMode.car));
 		config.qsim().setInsertingWaitingVehiclesBeforeDrivingVehicles(true);
 
 		// modify global
 		config.global().setCoordinateSystem("EPSG:2039");
-		config.global().setNumberOfThreads(8);
+		config.global().setNumberOfThreads(16);
 		// ?? random seed?<param name="randomSeed" value="4711" />
+		
+		// Add transit
+		config.transit().setUseTransit(true);
+		config.transit().setTransitScheduleFile(INPUT_TRANSIT_SCHEDULE);
+		config.transit().setVehiclesFile(INPUT_TRANSIT_VEHICLES);
+		
 
-		// Add sub-tour mode choice
-		config.subtourModeChoice()
-				.setModes(new String[] { TransportMode.car, TransportMode.pt, TransportMode.walk, TransportMode.bike });
-		// TODO check that bike is biycle
-		config.subtourModeChoice().setChainBasedModes(new String[] { TransportMode.car });
 
+//		// Add sub-tour mode choice
+//		config.subtourModeChoice()
+//				.setModes(new String[] { TransportMode.car, TransportMode.pt, TransportMode.walk, TransportMode.bike });
+//		// TODO check that bike is biycle
+//		config.subtourModeChoice().setChainBasedModes(new String[] { TransportMode.car });
+//
 		// Add sub-tour mode choice
 		config.timeAllocationMutator().setMutationRange(3600);
 
@@ -110,12 +139,12 @@ public class RunJerusalem {
 		changeExpStrategy.setWeight(0.8);
 		config.strategy().addStrategySettings(changeExpStrategy);
 
-		// Add strategy - time-mutation
-//		StrategySettings timeMutatorStrategy = new StrategySettings();
-//		timeMutatorStrategy
-//				.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator.toString());
-//		timeMutatorStrategy.setWeight(0.1);
-//		config.strategy().addStrategySettings(timeMutatorStrategy);
+//		 Add strategy - time-mutation
+		StrategySettings timeMutatorStrategy = new StrategySettings();
+		timeMutatorStrategy
+				.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator.toString());
+		timeMutatorStrategy.setWeight(0.1);
+		config.strategy().addStrategySettings(timeMutatorStrategy);
 
 		// Add strategy - re-route
 		StrategySettings reRouteStrategy = new StrategySettings();
@@ -123,15 +152,15 @@ public class RunJerusalem {
 		reRouteStrategy.setWeight(0.1);
 		config.strategy().addStrategySettings(reRouteStrategy);
 
-		// Add strategy - Sub-tour strategy
-//		StrategySettings subTourModeChoiceStrategy = new StrategySettings();
-//		subTourModeChoiceStrategy
-//				.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice.toString());
-//		subTourModeChoiceStrategy.setWeight(0.1);
-//		config.strategy().addStrategySettings(subTourModeChoiceStrategy);
+//		 Add strategy - Sub-tour strategy
+		StrategySettings subTourModeChoiceStrategy = new StrategySettings();
+		subTourModeChoiceStrategy
+				.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice.toString());
+		subTourModeChoiceStrategy.setWeight(0.1);
+		config.strategy().addStrategySettings(subTourModeChoiceStrategy);
 
 		// add car Availability after adding attributes to popualtion
-		// config.subtourModeChoice().setConsiderCarAvailability(true);
+		 config.subtourModeChoice().setConsiderCarAvailability(true);
 
 		// add network modes which are simulated on network in future add more modes
 		// config.plansCalcRoute().setNetworkModes(Arrays.asList(TransportMode.car));

@@ -1,4 +1,4 @@
-package jerusalem.scenario.population;
+package jerusalem.scenario.archive;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -22,8 +22,11 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.api.core.v01.population.PopulationWriter;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.population.PersonUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import jerusalem.scenario.DbInitialize;
+import jerusalem.scenario.DbUtils;
 import jerusalem.scenario.network.CreateNetwork;
 
 /**
@@ -32,15 +35,10 @@ import jerusalem.scenario.network.CreateNetwork;
 public class PopCreator {
 
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
-	private static final String path = "src/database.properties";
-	private static final Properties props = DbUtils.readProperties(path);
-	private static final String user = props.getProperty("db.username");
-	private static final String password = props.getProperty("db.password");
-	private static final String db_url = props.getProperty("db.url");
-	private static final String port = props.getProperty("db.port");
-	private static final String db_name = props.getProperty("db.db_name");
-	private static final String OUTPUT_POPULATION_XML = props.getProperty("db.output_population_xml_path");
-	private static final String url = "jdbc:postgresql://" + db_url + ":" + port + "/" + db_name + "?loggerLevel=DEBUG";
+	private static final Properties props = DbUtils.readProperties("database.properties");
+	private final static String POPULATION_ID = "" + 3;
+	public final static String POPULATION_OUTPUT_PATH = props.getProperty("folder.output_folder") + POPULATION_ID
+			+ ".population.xml.gz";
 	private static final String pathQuery = "./sql_scripts/pop_query.sql";
 	private static Scenario sc;
 	private static Population population;
@@ -48,7 +46,7 @@ public class PopCreator {
 	private static Person person;
 	private static Plan plan;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SQLException {
 
 		// initial setup
 		initialPopulationSetup();
@@ -58,20 +56,20 @@ public class PopCreator {
 
 		// read population from database
 		readPopulation(query);
-
+		// FIXME Change all logic - first read persons, then assign to households, then
+		// add activities and legs
 		// write population
-		new PopulationWriter(sc.getPopulation(), sc.getNetwork()).write(OUTPUT_POPULATION_XML);
+		new PopulationWriter(sc.getPopulation(), sc.getNetwork()).write(POPULATION_OUTPUT_PATH);
 	}
 
 	/**
 	 * Reads in pop_query.sql - query that returns all separate trips of all agents
-	 * TODO add idle agents - with only home activity (load persons table to db,
-	 * join it, sql manipulation)
 	 * 
 	 * @param path
 	 * @return
 	 */
-	public static String readQueryFile(String path) {
+//	TODO get rid of this function, move query to sql view/table
+	private static String readQueryFile(String path) {
 		log.info("reading pop_query.sql");
 		BufferedReader br = null;
 		String query = "";
@@ -107,37 +105,38 @@ public class PopCreator {
 	 * population and adds activities to the agents
 	 * 
 	 * @param query
+	 * @throws SQLException
 	 */
-	public static void readPopulation(String query) {
-		try (Connection con = DriverManager.getConnection(url, user, password);
-				PreparedStatement pst = con.prepareStatement(query);
-				ResultSet resultSet = pst.executeQuery()) {
+	private static void readPopulation(String query) throws SQLException {
+		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
+		con.setAutoCommit(false);
+		PreparedStatement pst = con.prepareStatement(query);
+		pst.setFetchSize(50000);
+		ResultSet resultSet = pst.executeQuery();
+		int i = 0;
+		while (resultSet.next()) {
 
-			int i = 0;
-			while (resultSet.next()) {
-
-				// creating a new person if one started. 1 is for a person with at least one
-				// trip, 0 is for a person that stays home
-				boolean firstTrip = resultSet.getInt("personTripNum") == 1 | resultSet.getInt("personTripNum") == 0;
-				if (firstTrip) {
-					createAgent(resultSet);
-				}
-				addActivityAndLeg(resultSet);
-				if (i % 100000 == 0) {
-					log.info("read line #" + i + " from trips table");
-				}
-				i++;
+			// creating a new person if one started. 1 is for a person with at least one
+			// trip, 0 is for a person that stays home
+			boolean firstTrip = resultSet.getInt("personTripNum") == 1 | resultSet.getInt("personTripNum") == 0;
+			if (firstTrip) {
+				createAgent(resultSet);
 			}
+			addActivityAndLeg(resultSet);
+			if (i % 100000 == 0) {
+				log.info("read line #" + i + " from trips table");
+			}
+			i++;
 
-		} catch (SQLException ex) {
-			ex.printStackTrace();
 		}
+		con.close();
 	}
 
 	/**
 	 * Method to initialize population generator
 	 */
-	public static void initialPopulationSetup() {
+//	TODO remove, this is unnecessary 
+	private static void initialPopulationSetup() {
 		sc = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		population = sc.getPopulation();
 		populationFactory = population.getFactory();
@@ -150,9 +149,18 @@ public class PopCreator {
 	 * @param resultSet
 	 * @throws SQLException
 	 */
-	public static void createAgent(ResultSet resultSet) throws SQLException {
+	private static void createAgent(ResultSet resultSet) throws SQLException {
+		// TODO this has to change - move as many attributes as possible to households
 		String agentId = resultSet.getString("hhid") + "-" + resultSet.getString("pnum");
 		person = populationFactory.createPerson(Id.create(agentId, Person.class));
+		// setting attributes
+		PersonUtils.setAge(person, resultSet.getInt("age"));// persons.age
+		PersonUtils.setSex(person, resultSet.getInt("gender") == 1 ? "male" : "female");// persons.gender
+		PersonUtils.setEmployed(person, PopUtils.Employed(resultSet.getInt("perstypedetailed")));// persons.persTypeDetailed
+		PersonUtils.setLicence(person, resultSet.getInt("driverlicense") == 1 ? "yes" : "no");// persons.driverLicense
+		PersonUtils.setCarAvail(person,
+				PopUtils.CarAvail(resultSet.getInt("numauto"), resultSet.getInt("usualDriver")));// households.numauto,persons.usualDriver
+		person.getAttributes().putAttribute("sector", PopUtils.Sector(resultSet.getInt("sector")));// households.sector
 		population.addPerson(person);
 		plan = populationFactory.createPlan();
 	}
@@ -163,8 +171,8 @@ public class PopCreator {
 	 * @param resultSet
 	 * @throws SQLException
 	 */
-	public static void addActivityAndLeg(ResultSet resultSet) throws SQLException {
-
+	private static void addActivityAndLeg(ResultSet resultSet) throws SQLException {
+		// TODO clean and improve logic, get rid of centroids
 		// when agent only stays at home
 		if (resultSet.getInt("personTripNum") == 0) {
 			Coord origCoordinates = new Coord(resultSet.getDouble("homeX"), resultSet.getDouble("homeY"));
@@ -173,9 +181,20 @@ public class PopCreator {
 			plan.addActivity(activity);
 			person.addPlan(plan);
 		} else {
-			Coord origCoordinates = new Coord(resultSet.getDouble("origX"), resultSet.getDouble("origY"));
 			String actType = PopUtils.ActivityType(resultSet.getInt("origPurp"));
-			double endTime = resultSet.getDouble("finalDepartMinute") * 60 + 10800;
+			Coord origCoordinates;
+//			TODO why am I doing this? I remember there was a good reason. figure it out
+			resultSet.getDouble("actX");
+			if (!resultSet.wasNull()) {
+				origCoordinates = new Coord(resultSet.getDouble("actX"), resultSet.getDouble("actY"));
+			} else if (actType.equals("home")) {
+				origCoordinates = new Coord(resultSet.getDouble("homeX"), resultSet.getDouble("homeY"));
+			} else {
+				origCoordinates = new Coord(resultSet.getDouble("origX"), resultSet.getDouble("origY"));
+			}
+
+			// if activity is in home, use home coordinates
+			double endTime = resultSet.getDouble("finalDepartMinute") * 60 + 3 * 60 * 60;
 			String mode = PopUtils.Mode(resultSet.getInt("modeCode"));
 
 			// adding activity and leg
@@ -183,10 +202,10 @@ public class PopCreator {
 			activity.setEndTime(endTime);
 			plan.addActivity(activity);
 			plan.addLeg(populationFactory.createLeg(mode));
-
+			// TODO change logic to get rid of dest coordinates
 			// last activity - adding destination activity and adding person to population
 			if (resultSet.getInt("personTripNum") == resultSet.getInt("lastTripNum")) {
-				Coord destCoordinates = new Coord(resultSet.getDouble("destX"), resultSet.getDouble("destY"));
+				Coord destCoordinates = new Coord(resultSet.getDouble("homeX"), resultSet.getDouble("homeY"));
 				actType = PopUtils.ActivityType(resultSet.getInt("destPurp"));
 				activity = populationFactory.createActivityFromCoord(actType, destCoordinates);
 				plan.addActivity(activity);

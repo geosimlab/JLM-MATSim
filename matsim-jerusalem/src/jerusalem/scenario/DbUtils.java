@@ -1,6 +1,7 @@
-package jerusalem.scenario.population;
+package jerusalem.scenario;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -15,6 +16,10 @@ import java.util.logging.Logger;
  * @author Ido Klein
  */
 
+/**
+ * @author User
+ *
+ */
 public class DbUtils {
 	/**
 	 * Returns properties of DB and files paths from .properties file
@@ -44,10 +49,14 @@ public class DbUtils {
 	 * 
 	 * @param String <b>commands</b>
 	 */
-	public static void runCommand(String commands) throws IOException {
-		System.out.println("psql command:" + commands);
+	public static void runCommand(String command, String dirStr) throws IOException {
+		System.out.println("*********************************************************");
+		System.out.println("psql command:" + command);
+		String[] commands = { "cmd", "/C", command };// the string is on order to handle with pipes,
+		// https://stackoverflow.com/questions/5928225/how-to-make-pipes-work-with-runtime-exec
+		File dir = new File(dirStr);
 		Runtime rt = Runtime.getRuntime();
-		Process proc = rt.exec(commands);
+		Process proc = rt.exec(commands, null, dir);
 
 		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
@@ -63,7 +72,8 @@ public class DbUtils {
 		// Read any errors from the attempted command
 		System.out.println("Here is the standard error of the command (if any):\n");
 		while ((s = stdError.readLine()) != null) {
-			System.out.println(s);
+			System.out.println("\u001B[31m" + s);
+
 		}
 	}
 }

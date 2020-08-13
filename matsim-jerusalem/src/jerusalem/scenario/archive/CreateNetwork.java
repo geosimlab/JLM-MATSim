@@ -1,4 +1,4 @@
-package jerusalem.scenario.network;
+package jerusalem.scenario.archive;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -46,19 +46,27 @@ public class CreateNetwork {
 	// Logger
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
-	private final static int MIN_FLOW_CAPACITY = 500;
-	public final static String NETWORK_ID = "11";
+	private final static int MIN_STORAGE_LENGTH = 0; 
+	private final static double STORAGE_LENGTH_DECAY = 0;
+	private final static int MIN_FLOW_CAPACITY = 0;
+	public final static String NETWORK_ID = "increased_storge_cap_"+MIN_STORAGE_LENGTH+"_decay_"+STORAGE_LENGTH_DECAY+"_min_flow_capcity_" + MIN_FLOW_CAPACITY;
 	public final static String NETWORK_OUTPUT_PATH = props.getProperty("folder.output_folder") + NETWORK_ID
 			+ ".network.xml.gz";
 	private final static boolean REMOVE_CONNECTOR = true;
-	private final static boolean REMOVE_WALK_LINKS = false;
+	private final static boolean REMOVE_WALK_LINKS = true;
 	private final static boolean REMOVE_LOCAL_STREETS = false;
 
 	private Network NET;
-	public CreateNetwork() {
+	private String network_id;
+	private String network_output_path; 
+	//	TODO unless we use objects as inputs, this is unnecessary
+	public CreateNetwork(double min_storage_length, double storage_length_decay, int min_flow_capacity) {
 		try {
-			Network newNetwork = createJLMNet();
+			Network newNetwork = createJLMNet(min_storage_length, storage_length_decay, min_flow_capacity);
 			this.NET = newNetwork;
+			this.network_id = "increased_storge_cap_"+min_storage_length+"_decay_"+storage_length_decay+"_min_flow_capcity_" + min_flow_capacity;
+			this.network_output_path = props.getProperty("folder.output_folder") + network_id
+					+ ".network.xml.gz";
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -68,27 +76,169 @@ public class CreateNetwork {
 	public Network getJlmNet() {
 		return this.NET;
 	}
+	public String getId() {
+		return this.network_id;
+	}
+	public String getPath() {
+		return this.network_output_path;
+	}
 
 	public static void main(String[] args) throws SQLException {
-		Network newNetwork = createJLMNet();
+		Network newNetwork = createJLMNet(0,0,500);
 		new NetworkWriter(newNetwork).write(NETWORK_OUTPUT_PATH);
 	}
 
-	private static Network createJLMNet() throws SQLException
+	private static Network createJLMNet(double min_storage_length, double storage_length_decay, int min_flow_capacity) throws SQLException
 	{
 		// Read nodes
 		Map<String, Coord> nodesMap = readNodes();
 
 		// Read links
-		Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_LOCAL_STREETS,REMOVE_CONNECTOR, REMOVE_WALK_LINKS);
+		Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_LOCAL_STREETS,REMOVE_CONNECTOR, REMOVE_WALK_LINKS,min_storage_length, storage_length_decay, min_flow_capacity);
+
 		// Create the Jerusalem MATSim Network
 		Network jlmNet = createMATSimNet(nodesMap, linksMap);
+		log.info("Simplifying the network...");
+//		remove muesem of tolerance going back up - this is the correct state
+//		jlmNet.removeLink(Id.create("10274_10239_7", Link.class));
+//		NetworkSimplifierIdo ns = new NetworkSimplifierIdo();
+//		ns.setMergeLinkStats(true);
+//		Set<Long> nodeIDs = new HashSet<>();
+//		//		ben sira and surrondings
+//		nodeIDs.add((long) 10241);
+//		nodeIDs.add((long) 10427);
+//		nodeIDs.add((long) 10263);
+//		nodeIDs.add((long) 10393);
+//		nodeIDs.add((long) 10239);
+//		nodeIDs.add((long) 10278);
+//		nodeIDs.add((long) 10298);
+//		nodeIDs.add((long) 10284);
+//		nodeIDs.add((long) 10294);
+//		nodeIDs.add((long) 10308);
+//		nodeIDs.add((long) 10312);
+//		nodeIDs.add((long) 10274);
+//		//		agron
+//		nodeIDs.add((long) 10436);
+//		nodeIDs.add((long) 10476);
+//		nodeIDs.add((long) 10250);
+//		nodeIDs.add((long) 10206);
+//		//		ben-israel
+//		nodeIDs.add((long) 10441);
+//		//		king george
+//		nodeIDs.add((long) 10175);
+//		nodeIDs.add((long) 10177);
+//		nodeIDs.add((long) 10178);
+//		//		shmuel hanagid
+//		nodeIDs.add((long) 10156);
+//		nodeIDs.add((long) 10161);
+//		nodeIDs.add((long) 10153);
+//		//		pines
+//		nodeIDs.add((long) 10475);
+//		// haneviim
+//		nodeIDs.add((long) 10194);
+//		// agripas roundabout	
+//		nodeIDs.add((long) 10182);
+//		ns.setNodesNotMergeIdo(nodeIDs);
+//		ns.run(jlmNet);
+//		//		remove koresh - cant do it with turn manuvers
+//		jlmNet.removeLink(Id.create("10312_10298_8-10298_10278_8", Link.class));
+//		//		remove end of shamai - this is the correct state
+//		jlmNet.removeLink(Id.create("10418_10420_8", Link.class));
+//		
+//		//		remove old city - jafa gate and zion gate
+//		jlmNet.removeLink(Id.create("10341_10345_6", Link.class));
+//		jlmNet.removeLink(Id.create("10369_10365_8", Link.class));
+//		
+//		
+//		//		extend munbaz - alternatively, simplify intersection manually
+//		jlmNet.getLinks().get(Id.create("10281_10285_8", Link.class)).setNumberOfLanes(2);
+//		jlmNet.getLinks().get(Id.create("10281_10285_8", Link.class)).setCapacity(750);
+//		//		extend beeri
+//		jlmNet.getLinks().get(Id.create("10161_10177_6", Link.class)).setNumberOfLanes(3);
+//		//		set histadrut and shamai to 750 capacity
+//		jlmNet.getLinks().get(Id.create("10419_10418_8", Link.class)).setCapacity(750);
+//		jlmNet.getLinks().get(Id.create("10200_10419_8", Link.class)).setCapacity(750);		
+////		set narkis capacity to 780
+//		jlmNet.getLinks().get(Id.create("10153_10141_7", Link.class)).setCapacity(780);
+//		//		remove hillel short, hillel after hillel short, and bianciani. add a link from bianciani to r' akiva
+//		//		this is the correct state
+//		jlmNet.removeLink(Id.create("10418_10385_8", Link.class));
+//		jlmNet.removeLink(Id.create("10213_10385_7", Link.class));
+//		jlmNet.removeLink(Id.create("10385_10239_7", Link.class));
+//		jlmNet.removeNode(Id.create("10385", Node.class)); 
+//		Link link = jlmNet.getFactory().createLink(Id.create("10418_10213_8",Link.class), jlmNet.getNodes().get(Id.create("10418",Node.class)), jlmNet.getNodes().get(Id.create("10213",Node.class))) ;
+//		link.setLength(1);
+//		link.setFreespeed(9.0);
+//		link.setCapacity(750);
+//		link.setNumberOfLanes(1);
+//		jlmNet.addLink(link);
+//		link = jlmNet.getFactory().createLink(Id.create("10213_10239_8",Link.class), jlmNet.getNodes().get(Id.create("10213",Node.class)), jlmNet.getNodes().get(Id.create("10239",Node.class))) ;
+//		link.setLength(1);
+//		link.setFreespeed(11.0);
+//		//		capacity like upper hillel
+//		link.setCapacity(975);
+//		link.setNumberOfLanes(1);
+//		jlmNet.addLink(link);
+//		//	get rid of rav kook - rav agan loop
+//		jlmNet.removeLink(Id.create("10264_10234_8", Link.class));
+		// 	OR manually simplify rav kook, ethiopia, rav agan, bnei brit and neviiem
+//		jlmNet.removeLink(Id.create("10262_10412_8", Link.class));
+//		jlmNet.removeLink(Id.create("10247_10262_6", Link.class));
+//		jlmNet.removeLink(Id.create("10262_10247_6", Link.class));
+//		jlmNet.removeLink(Id.create("10262_10264_6", Link.class));
+//		jlmNet.removeLink(Id.create("10264_10262_6", Link.class));
+//		jlmNet.removeLink(Id.create("10233_10247_6", Link.class));
+//		jlmNet.removeLink(Id.create("10247_10233_6", Link.class));
+//		jlmNet.removeLink(Id.create("10391_10247_8", Link.class));
+//		jlmNet.removeNode(Id.create("10262", Node.class));
+//		jlmNet.removeNode(Id.create("10247", Node.class));
+//		link = jlmNet.getFactory().createLink(Id.create("10264_10412_8",Link.class), jlmNet.getNodes().get(Id.create("10264",Node.class)), jlmNet.getNodes().get(Id.create("10412",Node.class)));
+//		link.setLength(1);
+//		link.setFreespeed(9.0);
+//		link.setCapacity(600);
+//		link.setNumberOfLanes(1);
+//		jlmNet.addLink(link);
+//		link = jlmNet.getFactory().createLink(Id.create("10391_10233_8",Link.class), jlmNet.getNodes().get(Id.create("10391",Node.class)), jlmNet.getNodes().get(Id.create("10233",Node.class)));
+//		link.setLength(1);
+//		link.setFreespeed(9.0);
+//		link.setCapacity(600);
+//		link.setNumberOfLanes(1);
+//		jlmNet.addLink(link);
+//	
+//		link = jlmNet.getFactory().createLink(Id.create("10233_10264_6",Link.class), jlmNet.getNodes().get(Id.create("10233",Node.class)), jlmNet.getNodes().get(Id.create("10264",Node.class)));
+//		link.setLength(1);
+//		link.setFreespeed(12.0);
+//		link.setCapacity(735);
+//		link.setNumberOfLanes(1);
+//		jlmNet.addLink(link);
+//		link = jlmNet.getFactory().createLink(Id.create("10264_10233_6",Link.class), jlmNet.getNodes().get(Id.create("10264",Node.class)), jlmNet.getNodes().get(Id.create("10233",Node.class)));
+//		link.setLength(1);
+//		link.setFreespeed(12.0);
+//		link.setCapacity(735);
+//		link.setNumberOfLanes(1);
+//		jlmNet.addLink(link);
+		//		ns = new NetworkSimplifier();
+		//		ns.setMergeLinkStats(true);
+		//		ns.run(jlmNet);
+		//		simplify intersections
+		//		IntersectionSimplifier is = new IntersectionSimplifier(50.0, 2);
+		//		jlmNet = is.simplify(jlmNet);
+		//		MutableScenario msc = ScenarioUtils.createMutableScenario(ConfigUtils.createConfig());
+		//		msc.setNetwork(jlmNet);
+		//		NetworkTurnInfoBuilder ntib = new NetworkTurnInfoBuilder(msc);
+		//		Map<Id<Link>, List<TurnInfo>>  inLinkTurnInfoMap = ntib.createAllowedTurnInfos();
+		//		NetworkInverter ni = new NetworkInverter(jlmNet,inLinkTurnInfoMap);
+		//		jlmNet = ni.getInvertedNetwork();
+		NetworkCalcTopoType nct = new NetworkCalcTopoType();
+		nct.run(jlmNet);
+
+
 		log.info("Cleaning the network...");
 		// Run network cleaner and multiModeNetworkCleaner- deleting nodes which do not
 		// connect
 		jerusalemNetworkCleaner(jlmNet);
-		// euclidean distance adaptation		
 		new NetworkAdaptLength().run(jlmNet);
+		nct.run(jlmNet);
 		return jlmNet;
 	}
 
@@ -163,7 +313,7 @@ public class CreateNetwork {
 	 * @param min_flow_capacity 
 	 * @return Map "String, ArrayList<JerusalemLink"
 	 */
-	private static Map<String, ArrayList<JerusalemLink>> readLinks(boolean isLocal, boolean isConnector, boolean isWalk)
+	private static Map<String, ArrayList<JerusalemLink>> readLinks(boolean isLocal, boolean isConnector, boolean isWalk, double min_storage_length, double storage_length_decay, int min_flow_capacity)
 			throws SQLException {
 		log.info("Reading links");
 
@@ -186,9 +336,13 @@ public class CreateNetwork {
 			jerusalemLink.setToId(j);
 			jerusalemLink.setLength(length);
 			jerusalemLink.setMode(JerusalemLink.parseMode(mode));
-			jerusalemLink.setLaneNum(num_lanes);
+			if (length >= min_storage_length) {
+				jerusalemLink.setLaneNum(num_lanes);
+			} else {
+				jerusalemLink.setLaneNum(num_lanes *Math.pow(Math.ceil(min_storage_length/length),storage_length_decay));
+			}
 			jerusalemLink.setRoadType(resultSet.getDouble("type"));
-			// setting capacity and speed in pt or walk links			
+			//			fixing links with capacity = 0, speed = 0
 			if (mode.equals("[Mode(b), Mode(w)]") | mode.equals("[Mode(b)]") | mode.equals("[Mode(l)]")) {
 				jerusalemLink.setCapacity(5000);
 				jerusalemLink.setFreeSpeed(8.333333333);
@@ -199,12 +353,13 @@ public class CreateNetwork {
 				jerusalemLink.setCapacity(500);
 				jerusalemLink.setFreeSpeed(1.39);
 			} else {
-				// setting min capacity of links				
-				jerusalemLink.setCapacity(Math.max(MIN_FLOW_CAPACITY,(int) resultSet.getDouble("linkcap")));
+				jerusalemLink.setCapacity(Math.max(min_flow_capacity,(int) resultSet.getDouble("linkcap")));
 				jerusalemLink.setFreeSpeed((double) (int) resultSet.getDouble("s0link_m_per_s"));
 			}
+
 			String id = jerusalemLink.getFromId() + "_" + jerusalemLink.getToId() + "_"
 					+ (int) jerusalemLink.getRoadType();
+
 			linkArr.add(jerusalemLink);
 			LinksMap.put(id, linkArr);
 		}
@@ -249,12 +404,17 @@ public class CreateNetwork {
 				// create node ID object to get read from the network
 				Id<Node> fromID = Id.createNodeId(jerusalemLink.getFromId());
 				Id<Node> toID = Id.createNodeId(jerusalemLink.getToId());
+
 				Node fromNode = net.getNodes().get(fromID);
 				Node toNode = net.getNodes().get(toID);
+				//				double euclideanDistance = NetworkUtils.getEuclideanDistance(fromNode.getCoord(), toNode.getCoord());
+				//				euclideanDistance = euclideanDistance > jerusalemLink.getLength() ? euclideanDistance
+				//						: jerusalemLink.getLength();
 				link = fac.createLink(Id.createLinkId(linkId), fromNode, toNode);
-				double travelTime = jerusalemLink.getLength() / jerusalemLink.getFreeSpeed();
+				//				double travelTime = euclideanDistance / jerusalemLink.getFreeSpeed();
 				setLinkAttributes(link, jerusalemLink.getCapacity(), jerusalemLink.getLength(),
-						jerusalemLink.getFreeSpeed(),travelTime ,jerusalemLink.getMode(), jerusalemLink.getLaneNum());
+						jerusalemLink.getFreeSpeed(), jerusalemLink.getMode(), jerusalemLink.getLaneNum());
+				//				link.getAttributes().putAttribute("roadType", jerusalemLink.getRoadType());
 			}
 			net.addLink(link);
 		}
@@ -269,15 +429,15 @@ public class CreateNetwork {
 	 * @param length     meters
 	 * @param travelTime on link
 	 * @param modes      a set of allowed modes
-	 * @param numberOfLanes   
 	 */
-	private static void setLinkAttributes(Link link, double capacity, double length, double freespeed,double travelTime,
+	private static void setLinkAttributes(Link link, double capacity, double length, double freespeed,
 			Set<String> modes, double numberOfLanes) {
 		link.setCapacity(capacity);
 		link.setLength(length);
+
 		// agents have to reach the end of the link before the time step ends to
 		// be able to travel forward in the next time step (matsim time step logic)
-		link.setFreespeed(link.getLength() / (travelTime - 0.1));
+		link.setFreespeed(freespeed);
 		link.setAllowedModes(modes);
 		link.setNumberOfLanes(numberOfLanes);
 	}

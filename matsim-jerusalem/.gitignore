@@ -4,3 +4,5 @@
 /target/
 /.settings/
 /database.properties
+/.dbeaver/
+/README.md
