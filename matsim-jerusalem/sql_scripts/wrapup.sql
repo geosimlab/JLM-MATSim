@@ -54,16 +54,22 @@ add PRIMARY KEY (uniq_id);
 --stage 1: adding a field for real or fake for both tables, and populating exisitng rows with false
 alter table bldg_cent
 add column fake boolean DEFAULT FALSE;
-alter table poi_bldg
-add column fake boolean DEFAULT FALSE;
+ALTER TABLE poi_bldg ADD COLUMN fake boolean DEFAULT FALSE;
+
 --stage 2: adding an altered nodes table into bldg_cent
-insert into bldg_cent(uniq_id,area,centroid,ftype,fake)
-select i::integer + 100000000 as uniq_id, --fake uniq_id 
-		0 as area, --fake area
-		geometry as centroid, 
-		11 as ftype,
-		TRUE as fake
-from nodes;
+ INSERT
+	INTO
+	bldg_cent(uniq_id, area, centroid, ftype, fake)
+SELECT
+	i::integer + 100000000 AS uniq_id,
+	--fake uniq_id 
+ 0 AS area,
+	--fake area
+ geometry AS centroid,
+	11 AS ftype,
+	TRUE AS fake
+FROM
+	nodes;
 --stage 3: adding all fake values from bldg_cent to poi_bldg
 insert into poi_bldg(uniq_id,bldg_id,fcode,usg_group,usg_code,geometry,e_ord,n_ord,fake)
 select uniq_id,

@@ -1,4 +1,4 @@
-drop TABLE IF EXISTS counts_data;
+drop table if exists counts_data;
 CREATE TABLE IF NOT EXISTS counts_data AS 
 with initial_long as (
 select cid,a,b,countdate,linkid,

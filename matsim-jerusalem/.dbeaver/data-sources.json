@@ -24,6 +24,9 @@
 					"postgresql.dd.tag.string": "false"
 				},
 				"auth-model": "native"
+			},
+			"custom-properties": {
+				"resultset.maxrows": "30000"
 			}
 		}
 	},
