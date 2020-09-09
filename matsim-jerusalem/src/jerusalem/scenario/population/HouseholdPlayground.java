@@ -67,7 +67,7 @@ public class HouseholdPlayground
 	private static final Properties props = DbUtils.readProperties("database.properties");
 	private final static String HOUSEHOLDS_ID = "" + 1;
 	private final static String FACILITIES_ID = "" + 3;
-	private final static String POPULATION_ID = "" + 6;
+	private final static String POPULATION_ID = "" + 7;
 	private final static String FAMILY_VEHICLES_ID = "" + 4;
 	public final static String POPULATION_OUTPUT_PATH = props.getProperty("folder.output_folder") + POPULATION_ID
 			+ ".population.xml.gz";
@@ -161,7 +161,7 @@ public class HouseholdPlayground
 			PersonUtils.setEmployed(person, PopUtils.Employed(resultSet.getInt("perstypedetailed")));// persons.persTypeDetailed
 			PersonUtils.setLicence(person, resultSet.getInt("driverlicense") == 1 ? "yes" : "no");// persons.driverLicense
 			person.getAttributes().putAttribute("hhid", resultSet.getString("hhid"));
-			person.getAttributes().putAttribute("subpopulation", "internal");
+			
 			population.addPerson(person);
 			if (i % 10000 == 0)
 			{
@@ -209,7 +209,22 @@ public class HouseholdPlayground
 			household.setIncome(income);
 			// setting homeTAZ
 			HouseholdUtils.putHouseholdAttribute(household, "HomeTAZ", "" + resultSet.getInt("hometaz"));
-			HouseholdUtils.putHouseholdAttribute(household, "sector", "" + resultSet.getInt("sector"));
+			String sector = null;
+			switch(resultSet.getInt("sector")) {
+			case 1:
+				sector = "arab";
+				break;
+			case 2:
+				sector = "Ultra-Orthodox";
+				break;
+			case 3:
+				sector = "Secular";
+				break;
+			case 4:
+				sector = "Palestine";
+				break;
+			}
+			HouseholdUtils.putHouseholdAttribute(household, "sector", sector);
 			// setting members
 			List<Id<Person>> memberIds = (List<Id<Person>>) new ArrayList<Id<Person>>();
 			for (int i = 0; i < resultSet.getInt("hhsize"); i++)
@@ -421,8 +436,9 @@ public class HouseholdPlayground
 					Household.class);
 			Household houshold = households.getHouseholds().get(housholdId);
 			String homeFacilityRefId = (String) houshold.getAttributes().getAttribute("homeFacilityRefId");
+			String sector = (String) houshold.getAttributes().getAttribute("sector");
 			person.getAttributes().putAttribute("homeFacilityRefId", homeFacilityRefId);
-
+			person.getAttributes().putAttribute("subpopulation", "internal_"+sector);
 		}
 		return population;
 

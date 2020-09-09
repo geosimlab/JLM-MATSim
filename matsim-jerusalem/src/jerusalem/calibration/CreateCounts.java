@@ -17,34 +17,37 @@ import jerusalem.scenario.DbInitialize;
 
 public class CreateCounts
 {
-	private final static String COUNTS_ID = "1";
+	private final static String COUNTS_ID = "2";
 	public static void main(String[] args) throws SQLException
 	{
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		Statement statement = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-		String query = "select * from (select cid,linkid \r\n" + 
-				"from (\r\n" + 
-				"select cid,linkid ,ROW_NUMBER() OVER (PARTITION BY linkid ORDER BY cid DESC) AS RowNo \r\n" + 
-				"from counts) x \r\n" + 
-				"where RowNo = 1) y  "
-				+ "left join counts_data "
-				+ "using(cid,linkid) "
-				+ "where link_id is not null "
-				+ "order by count_year,cid,link_id,hour_of_count;";
+		String query = "select link_id,hour_of_count,avg(yaram) yaram\r\n" + 
+				"from counts_data\r\n" + 
+				"where (link_id,cid)  in (SELECT link_id,cid \r\n" + 
+				"FROM counts_data\r\n" + 
+				"GROUP BY\r\n" + 
+				"    link_id,cid\r\n" + 
+				"   having sum(yaram) > 0 and not (count(*) > 1 and min(yaram) = 0)\r\n" + 
+				"  order by link_id,cid)\r\n" + 
+				"  group by link_id,hour_of_count;";
 		ResultSet resultSet = statement.executeQuery(query);
 		Counts counts = new Counts();
 		int year = 2020;
 		counts.setYear(year);
 		counts.setName("JTMT counts data");
+		counts.setDescription("Average of all count stations without an hour with zero count since 2012");
 		String link_id = "0";
 		int cid = 0;
 		Count<Link> count = null;
 		while (resultSet.next()) {
-			if(cid != resultSet.getInt("cid") | !link_id.equals(resultSet.getString("link_id"))) {
+			if(!link_id.equals(resultSet.getString("link_id"))) {
+//				if(cid != resultSet.getInt("cid") | !link_id.equals(resultSet.getString("link_id"))) {
 				link_id = resultSet.getString("link_id");
-				cid = resultSet.getInt("cid");
+//				cid = resultSet.getInt("cid");
 				Id<Link> linkId = Id.create(link_id, Link.class);
-				String stationName = link_id + "_"+cid+"_" + resultSet.getDouble("count_year");
+//				String stationName = link_id + "_"+cid+"_" + resultSet.getDouble("count_year");
+				String stationName = link_id ;
 				count = counts.createAndAddCount(linkId, stationName);
 			}
 			int h  = resultSet.getInt("hour_of_count");

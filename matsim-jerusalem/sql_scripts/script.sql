@@ -248,3 +248,71 @@ FROM
 	
 select sum(ext_aut) over() from external_trips_matrix where destination not in (select taz from taz600) or origin not in (select taz from taz600) order by origin, destination ;
 select * from external_agents where destination in (select taz from taz600) and origin in (select taz from taz600);
+
+
+with initial_long as (
+select cid,a,b,countdate,linkid,
+unnest(array['AB0600','BA0600','AB0700','BA0700','AB0800','BA0800','AB0900','BA0900','AB1000','BA1000','AB1100','BA1100','AB1200','BA1200','AB1300','BA1300','AB1400','BA1400','AB1500','BA1500','AB1600','BA1600','AB1700','BA1700','AB1800','BA1800']) as direction_hour,
+unnest(array[AB0600,BA0600,AB0700,BA0700,AB0800,BA0800,AB0900,BA0900,AB1000,BA1000,AB1100,BA1100,AB1200,BA1200,AB1300,BA1300,AB1400,BA1400,AB1500,BA1500,AB1600,BA1600,AB1700,BA1700,AB1800,BA1800]) as yaram 
+from counts),
+direction_hours as (
+select cid,a,b,countdate,substring(direction_hour,1,2) as direction,1 + substring(direction_hour,3,6)::int/100 as hour_of_count,linkid,yaram
+from initial_long 
+),
+directing as(
+select cid, linkid,
+case 
+when direction = 'AB' then a
+when direction = 'BA' then b 
+end as a,
+case 
+when direction = 'AB' then b
+when direction = 'BA' then a 
+end as b,
+hour_of_count, yaram,countdate from direction_hours
+),
+with_type as(
+select d.*,l."type" from directing d
+left join links l 
+on d.a = l.i and d.b = l.j
+where l."type" is not null
+)
+select cid,extract(year from countdate) count_year, a,b,concat(a,'_',b,'_',type) link_id,linkid,hour_of_count, yaram 
+from with_type
+order by count_year,cid,link_id,hour_of_count;
+
+
+select * from counts_data;
+
+select distinct link_id,cid from counts_data; --2964
+
+SELECT link_id,cid 
+FROM counts_data
+GROUP BY
+    link_id,cid
+   having sum(yaram) = 0
+  order by link_id,cid; -- 75
+
+SELECT link_id,cid 
+FROM counts_data
+GROUP BY
+    link_id,cid
+   having count(*) > 1 and min(yaram) = 0 and sum(yaram) > 0
+  order by link_id,cid; -- 53
+
+SELECT link_id,cid 
+FROM counts_data
+GROUP BY
+    link_id,cid
+   having sum(yaram) > 0 and not (count(*) > 1 and min(yaram) = 0)
+  order by link_id,cid; -- 2836  
+
+select link_id,hour_of_count,avg(yaram) yaram
+from counts_data
+where (link_id,cid)  in (SELECT link_id,cid 
+FROM counts_data
+GROUP BY
+    link_id,cid
+   having sum(yaram) > 0 and not (count(*) > 1 and min(yaram) = 0)
+  order by link_id,cid)
+  group by link_id,hour_of_count;
