@@ -331,3 +331,14 @@ GROUP BY
  where type_r != '10' 
  group by link_id,hour_of_count;
  
+
+select * from (select cid,linkid 
+from (
+select cid,linkid ,ROW_NUMBER() OVER (PARTITION BY linkid ORDER BY cid DESC) AS RowNo 
+from counts) x 
+where RowNo = 1) y  
+left join counts_data 
+using(cid,linkid) 
+where link_id is not null 
+order by count_year,cid,link_id,hour_of_count;
+
