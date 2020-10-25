@@ -6,7 +6,7 @@ from trips t
 left join households h  using(hhid)
 ),
 super_zones_trips_v2 as(
-select sector,origsuper,destsuper,CASE WHEN ("morning_pick") THEN ('morning') WHEN NOT("morning_pick") THEN (CASE WHEN ("afternoon_pick") THEN ('afternoon') WHEN NOT("afternoon_pick") THEN ('no') END) END AS "pick" from super_zones_trips_v1 
+select sector,origsuper,destsuper,CASE WHEN morning_pick THEN 'morning' WHEN not morning_pick THEN (CASE WHEN afternoon_pick THEN 'afternoon' WHEN not afternoon_pick THEN 'no' END) END AS pick from super_zones_trips_v1 
 ),
 super_zones_taz_v1 as(
 select ceiling((taz/1000.0)::float) tazsuper,geometry 
