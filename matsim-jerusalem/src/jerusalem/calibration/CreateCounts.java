@@ -21,7 +21,7 @@ import jerusalem.scenario.DbInitialize;
 
 public class CreateCounts
 {
-	private final static String COUNTS_ID = "6";
+	private final static String COUNTS_ID = "8";
 	public static void main(String[] args) throws SQLException, IOException
 	{
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
