@@ -14,7 +14,7 @@ public class JerusalemLink {
 	protected double freeSpeed;
 
 	public JerusalemLink() {
-		// TODO Auto-generated constructor stub
+
 	}
 
 	public int getFromId() {

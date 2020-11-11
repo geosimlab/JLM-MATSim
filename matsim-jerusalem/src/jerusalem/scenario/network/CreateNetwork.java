@@ -40,23 +40,24 @@ import jerusalem.scenario.db.DbInitialize;
 import jerusalem.scenario.db.DbUtils;
 
 /**
- * @author Golan Ben-Dor
+ * @author Golan Ben-Dor and Ido Klein
  */
 public class CreateNetwork {
-//	TODO add code comments
-//	TODO delete commented code
 	// Logger
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
+//	All link have minimum 500 capacity in MATSim. common practice, asked kai nagel. 
 	private final static int MIN_FLOW_CAPACITY = 500;
 	public final static String NETWORK_ID = "11";
 	public final static String NETWORK_OUTPUT_PATH = props.getProperty("folder.output_folder") + NETWORK_ID
 			+ ".network.xml.gz";
+//	whether links of certain types be removed. 
 	private final static boolean REMOVE_CONNECTOR = true;
 	private final static boolean REMOVE_WALK_LINKS = false;
 	private final static boolean REMOVE_LOCAL_STREETS = false;
 
 	private Network NET;
+//	Constructor creates network
 	public CreateNetwork() {
 		try {
 			Network newNetwork = createJLMNet();
@@ -66,21 +67,27 @@ public class CreateNetwork {
 		}
 
 	}
-
+//  method to return the network
 	public Network getJlmNet() {
 		return this.NET;
 	}
-
+//  main, method to write network to file
 	public static void main(String[] args) throws SQLException {
 		Network newNetwork = createJLMNet();
 		new NetworkWriter(newNetwork).write(NETWORK_OUTPUT_PATH);
 	}
-
+//	
+	/**
+	 * main function to create network. 
+	 * can be changed to include other network manipulations. 
+	 * they exist in previous version of population branch
+	 * @return Network 
+	 * @throws SQLException
+	 */
 	private static Network createJLMNet() throws SQLException
 	{
 		// Read nodes
 		Map<String, Coord> nodesMap = readNodes();
-
 		// Read links
 		Map<String, ArrayList<JerusalemLink>> linksMap = readLinks(REMOVE_LOCAL_STREETS,REMOVE_CONNECTOR, REMOVE_WALK_LINKS);
 		// Create the Jerusalem MATSim Network
