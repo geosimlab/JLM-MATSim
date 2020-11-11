@@ -1,4 +1,4 @@
-package jerusalem.scenario;
+package jerusalem.scenario.db;
 
 import java.io.BufferedReader;
 import java.io.File;

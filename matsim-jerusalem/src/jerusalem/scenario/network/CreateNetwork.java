@@ -36,8 +36,8 @@ import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.scenario.MutableScenario;
 import org.matsim.core.scenario.ScenarioUtils;
 
-import jerusalem.scenario.DbInitialize;
-import jerusalem.scenario.DbUtils;
+import jerusalem.scenario.db.DbInitialize;
+import jerusalem.scenario.db.DbUtils;
 
 /**
  * @author Golan Ben-Dor

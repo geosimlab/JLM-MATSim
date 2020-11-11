@@ -57,8 +57,8 @@ import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.VehicleUtils;
 import org.matsim.vehicles.Vehicles;
 
-import jerusalem.scenario.DbInitialize;
-import jerusalem.scenario.DbUtils;
+import jerusalem.scenario.db.DbInitialize;
+import jerusalem.scenario.db.DbUtils;
 import jerusalem.scenario.network.CreateNetwork;
 
 public class HouseholdPlayground

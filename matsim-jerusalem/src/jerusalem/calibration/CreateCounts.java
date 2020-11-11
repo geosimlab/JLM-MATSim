@@ -17,7 +17,7 @@ import org.matsim.counts.Count;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsWriter;
 
-import jerusalem.scenario.DbInitialize;
+import jerusalem.scenario.db.DbInitialize;
 
 public class CreateCounts
 {
