@@ -87,6 +87,8 @@ public class DbInitialize {
 	}
 
 	/**
+	 * Function to execute sql scripts that does manipulations over tables. 
+	 * used for local files from the sql_scripts folder.  
 	 * @param path
 	 * @param con
 	 * @throws SQLException
@@ -102,18 +104,16 @@ public class DbInitialize {
 			for (Object i : lines) {
 				result = result + (String) i + "\n";
 			}
-//			System.out.println(result);
 			Statement st = con.createStatement();
 			st.execute(result);
-//			log.debug();
 		} catch (SQLException | FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			log.info(e.getClass().getTypeName() + ": " + e.getMessage());
 		}
 
 	}
 
 	/**
+	 * Function to copy tables into sql from csv files.
 	 * @param path path to csv
 	 * @param con  Connection to database
 	 * @throws SQLException
@@ -129,7 +129,6 @@ public class DbInitialize {
 
 			log.info(rowsInserted + " rows inserted from " + path + " into database");
 		} catch (SQLException | IOException e) {
-			// TODO Auto-generated catch block
 			log.info(e.getClass().getTypeName() + ": " + e.getMessage());
 		}
 

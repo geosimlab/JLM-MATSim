@@ -44,14 +44,14 @@ public class DbUtils {
 	}
 
 	/**
-	 * Runs psql commands on local machine. psql should be installed and configured
-	 * on local machine. Commands require valid psql syntax.
+	 * Runs commands on local machine. the relevant software should be installed and configured
+	 * on local machine. Commands require valid syntax. manily used for ogr2ogr
 	 * 
 	 * @param String <b>commands</b>
 	 */
 	public static void runCommand(String command, String dirStr) throws IOException {
 		System.out.println("*********************************************************");
-		System.out.println("psql command:" + command);
+		System.out.println("command:" + command);
 		String[] commands = { "cmd", "/C", command };// the string is on order to handle with pipes,
 		// https://stackoverflow.com/questions/5928225/how-to-make-pipes-work-with-runtime-exec
 		File dir = new File(dirStr);
