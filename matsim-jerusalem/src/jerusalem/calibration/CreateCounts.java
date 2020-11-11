@@ -24,6 +24,8 @@ public class CreateCounts
 	private final static String COUNTS_ID = "8";
 	public static void main(String[] args) throws SQLException, IOException
 	{
+//		TODO delete code comments
+//		TODO add comments
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
 		Statement statement = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		String own_path = System.getProperty("user.dir").replace("\\", "/");

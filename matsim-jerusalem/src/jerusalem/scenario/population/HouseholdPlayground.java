@@ -63,6 +63,11 @@ import jerusalem.scenario.network.CreateNetwork;
 
 public class HouseholdPlayground
 {
+//	TODO add javadoc
+//	TODO add documentation
+//	TODO delete some of commented code
+//	TODO document problems and missing things
+//	TODO add arguments to necessary possibilites
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private static final Properties props = DbUtils.readProperties("database.properties");
 	private final static String HOUSEHOLDS_ID = "" + 1;

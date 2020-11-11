@@ -7,6 +7,8 @@ import org.matsim.facilities.ActivityFacility;
 
 public class TazFacilities
 {
+//	TODO add javadoc
+//	TODO maybe write nicer code (public protected none and such)
 	protected ArrayList<Id<ActivityFacility>> householdsEmpty = new ArrayList<Id<ActivityFacility>>();
 	protected ArrayList<Id<ActivityFacility>> householdsFull = new ArrayList<Id<ActivityFacility>>();
 	protected ArrayList<Id<ActivityFacility>> amenitiesWork = new ArrayList<Id<ActivityFacility>>();

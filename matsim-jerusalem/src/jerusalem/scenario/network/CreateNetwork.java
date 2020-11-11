@@ -43,6 +43,8 @@ import jerusalem.scenario.DbUtils;
  * @author Golan Ben-Dor
  */
 public class CreateNetwork {
+//	TODO add code comments
+//	TODO delete commented code
 	// Logger
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");

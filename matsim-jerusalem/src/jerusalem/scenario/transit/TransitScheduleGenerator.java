@@ -44,6 +44,8 @@ import jerusalem.scenario.DbUtils;
  *
  */
 public class TransitScheduleGenerator {
+//	TODO complete javadoc
+//  TODO add code comments
 	private static final Logger log = Logger.getLogger(TransitScheduleGenerator.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
 	public final static String TRANSIT_ID = "5";
