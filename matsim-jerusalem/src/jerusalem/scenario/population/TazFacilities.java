@@ -7,8 +7,6 @@ import org.matsim.facilities.ActivityFacility;
 
 public class TazFacilities
 {
-//	TODO add javadoc
-//	TODO maybe write nicer code (public protected none and such)
 	protected ArrayList<Id<ActivityFacility>> householdsEmpty = new ArrayList<Id<ActivityFacility>>();
 	protected ArrayList<Id<ActivityFacility>> householdsFull = new ArrayList<Id<ActivityFacility>>();
 	protected ArrayList<Id<ActivityFacility>> amenitiesWork = new ArrayList<Id<ActivityFacility>>();
@@ -23,10 +21,15 @@ public class TazFacilities
 
 	}
 
-	public ArrayList<Id<ActivityFacility>> getAList(String array)
+	/**
+	 * Method to get all facilities from a certain type (beside housing) in a taz  
+	 * @param listName
+	 * @return ArrayList<Id<ActivityFacility>>
+	 */
+	public ArrayList<Id<ActivityFacility>> getAList(String listName)
 	{
 		ArrayList<Id<ActivityFacility>> result = null;
-		switch (array)
+		switch (listName)
 		{
 		case "work":
 			result = amenitiesWork;
@@ -132,6 +135,11 @@ public class TazFacilities
 		this.amenitiesFjlm = amenitiesFjlm;
 	}
 
+	/**
+	 * Method to add a facility to a specific taz group of activity facilities
+	 * @param facilityId
+	 * @param array
+	 */
 	public void addToList(Id<ActivityFacility> facilityId, String array)
 	{
 		switch (array)
@@ -165,6 +173,11 @@ public class TazFacilities
 		}
 	}
 
+	/**
+	 * Method to remove a facility to a specific taz group of activity facilities
+	 * @param facilityId
+	 * @param array
+	 */
 	public void removeFromList(Id<ActivityFacility> facilityId, String array)
 	{
 		switch (array)

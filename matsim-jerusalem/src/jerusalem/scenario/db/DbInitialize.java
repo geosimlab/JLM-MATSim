@@ -22,8 +22,6 @@ import jerusalem.scenario.network.CreateNetwork;
  *
  */
 public class DbInitialize {
-//	TODO delete commented code
-//	TODO improve javadoc
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	public static Properties props = DbUtils.readProperties("database.properties");
 	public final static String username = props.getProperty("db.username");

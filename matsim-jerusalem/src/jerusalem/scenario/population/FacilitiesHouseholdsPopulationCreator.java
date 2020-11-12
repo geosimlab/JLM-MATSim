@@ -57,17 +57,14 @@ import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.VehicleUtils;
 import org.matsim.vehicles.Vehicles;
 
+
+
 import jerusalem.scenario.db.DbInitialize;
 import jerusalem.scenario.db.DbUtils;
 import jerusalem.scenario.network.CreateNetwork;
 
-public class HouseholdPlayground
+public class FacilitiesHouseholdsPopulationCreator
 {
-//	TODO add javadoc
-//	TODO add documentation
-//	TODO delete some of commented code
-//	TODO document problems and missing things
-//	TODO add arguments to necessary possibilites
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private static final Properties props = DbUtils.readProperties("database.properties");
 	private final static String HOUSEHOLDS_ID = "" + 1;
@@ -85,34 +82,46 @@ public class HouseholdPlayground
 
 	public static void main(String[] args) throws SQLException
 	{
+//		connection to the database
 		Connection con = DriverManager.getConnection(DbInitialize.url, DbInitialize.username, DbInitialize.password);
+//		starting new config and scenario
 		Config config = ConfigUtils.createConfig();
 		Scenario scenario = ScenarioUtils.createScenario(config);
+//		loading network in order that facilities will connect only with allowed links
 		Network network = new CreateNetwork().getJlmNet();
+//		running this makes running main in createnetwork redundant
 		new NetworkWriter(network).write(CreateNetwork.NETWORK_OUTPUT_PATH);
+//		creating persons and households  
 		Population population = createPersons(scenario, con);
 		ArrayList<Object> temp1 = createHouseholds(scenario, con);
+//		unloading households and vehicles
 		Households households = (Households) temp1.get(0);
 		Vehicles vehicles = (Vehicles) temp1.get(1);
+//		creating facilities
 		ActivityFacilities facilities = createFacilities(scenario, con);
+//		connectiong households and facilities
 		ArrayList<Object> temp2 = addFacilitiesToHouseholds(facilities, households);
+//		unloading both
 		facilities = (ActivityFacilities) temp2.get(0);
 		households = (Households) temp2.get(1);
+//		cutting the network to link allowed to start/end trip on
 		network = cutNetwork(network);
 		new WorldConnectLocations(config).connectFacilitiesWithLinks(facilities, network);
-
+//		creating population from persons, households and facilities 
 		population = addHomeToPopulation(households, population);
-		population = addPlansToPopulation(population, facilities, con);
+		population = addPlansToInternalAgents(population, facilities, con);
 		population = addExternalAgents(population, facilities, con);
 		con.close();
+//		Writing all files
 		new FacilitiesWriter(facilities).write(FACILITIES_OUTPUT_PATH);
 		new HouseholdsWriterV10(households).writeFile(HOUSEHOLDS_OUTPUT_PATH);
 		new PopulationWriter(population).write(POPULATION_OUTPUT_PATH);
 	}
 
 	/**
-	 * function that cut the network to return links that agents can start their
-	 * trip on
+	 * function that cuts the network to return links that agents can start their
+	 * trip on. Meant to defer to start in Freeway,Highway,Regional Road,Local / Access road,LRT, Busway and Rail
+	 * This means network manipulations have already been carried out
 	 * 
 	 * @param network
 	 * @return network
@@ -143,6 +152,7 @@ public class HouseholdPlayground
 	}
 
 	/**
+	 * reading the persons sql table into an initial population object 
 	 * @param scenario
 	 * @param con
 	 * @return
@@ -159,13 +169,13 @@ public class HouseholdPlayground
 		while (resultSet.next())
 		{
 			Id<Person> personId = Id.create(resultSet.getString("hhid") + "-" + resultSet.getString("pnum"),
-					Person.class);
+					Person.class);//creating a unique matsin ID for each agent 
 			Person person = populationFactory.createPerson(personId);
 			PersonUtils.setAge(person, resultSet.getInt("age"));// persons.age
 			PersonUtils.setSex(person, resultSet.getInt("gender") == 1 ? "male" : "female");// persons.gender
 			PersonUtils.setEmployed(person, PopUtils.Employed(resultSet.getInt("perstypedetailed")));// persons.persTypeDetailed
 			PersonUtils.setLicence(person, resultSet.getInt("driverlicense") == 1 ? "yes" : "no");// persons.driverLicense
-			person.getAttributes().putAttribute("hhid", resultSet.getString("hhid"));
+			person.getAttributes().putAttribute("hhid", resultSet.getString("hhid"));// persons.hhid
 			
 			population.addPerson(person);
 			if (i % 10000 == 0)
@@ -178,6 +188,7 @@ public class HouseholdPlayground
 	}
 
 	/**
+	 * reading the households sql table into an initial households object
 	 * @param scenario
 	 * @param con
 	 * @return
@@ -214,6 +225,7 @@ public class HouseholdPlayground
 			household.setIncome(income);
 			// setting homeTAZ
 			HouseholdUtils.putHouseholdAttribute(household, "HomeTAZ", "" + resultSet.getInt("hometaz"));
+			// setting sector
 			String sector = null;
 			switch(resultSet.getInt("sector")) {
 			case 1:
@@ -263,6 +275,7 @@ public class HouseholdPlayground
 	}
 
 	/**
+	 * creating activity facilities from from tazs using three sql tables: taz map, bental_households and amentied
 	 * @param scenario
 	 * @param con
 	 * @return
@@ -294,9 +307,10 @@ public class HouseholdPlayground
 			Id<ActivityFacility> facilityId = Id.create("" + resultSet.getInt("uniq_id"), ActivityFacility.class);
 			// coordinates
 			Coord facilityCoord = new Coord(resultSet.getDouble("x"), resultSet.getDouble("y"));
-
+			// new activiry facility
 			ActivityFacilityImpl activityFacility = (ActivityFacilityImpl) aff.createActivityFacility(facilityId,
 					facilityCoord);
+			// all facilities in bental households have home, tjlm and fjlm activites			
 			activityFacility.createAndAddActivityOption("home");
 			activityFacility.createAndAddActivityOption("tjlm");
 			activityFacility.createAndAddActivityOption("fjlm");
@@ -325,13 +339,14 @@ public class HouseholdPlayground
 			i++;
 		}
 		// TODO amenities doesn't include a methodology to decide on opening and closing
-		// times. should add it.
+		// times. should add it. additionally  - there is no capacity for amenties. maybe add it in the future.
 		pst = con.prepareStatement("select * from amenities;");
 		resultSet = pst.executeQuery();
 		log.info("Reading amenities");
 		i = 0;
 		while (resultSet.next())
 		{
+			// setting id			
 			String amen_uniq_id = "" + resultSet.getInt("uniq_id");
 			Id<ActivityFacility> facilityId = Id.create(amen_uniq_id, ActivityFacility.class);
 			String taz = "" + resultSet.getInt("taz");
@@ -354,8 +369,7 @@ public class HouseholdPlayground
 			// opening and closing time is computed by taz in the sql query create amenites
 			double start_time = (resultSet.getDouble("opening_time") + 180) * 60;
 			double end_time = (resultSet.getDouble("closing_time") + 180) * 60;
-			// TODO due to major error in JTMT trips data, we use this condition to bypass
-			// error
+			// due to major error in JTMT trips data, we use this condition to bypass error 
 			if (end_time < start_time)
 			{
 				start_time = 0;
@@ -380,12 +394,17 @@ public class HouseholdPlayground
 	}
 
 	/**
+	 * Assigning households to facilities
+	 * Assigning facilty as home for each household
 	 * @param facilities
 	 * @param households
 	 * @return
 	 */
 	public static ArrayList<Object> addFacilitiesToHouseholds(ActivityFacilities facilities, Households households)
 	{
+		// Setting random seed for assignment of households in facilities
+		Random generator = new Random();
+		generator.setSeed(1234);
 		log.info("Adding facilities to households");
 		for (Id<Household> householdId : households.getHouseholds().keySet())
 		{
@@ -397,11 +416,10 @@ public class HouseholdPlayground
 			// getting empty facilities
 			ArrayList<Id<ActivityFacility>> facilitiesWithRoom = tazFacilities.getHouseholdsEmpty();
 			// choosing a random empty facility in the taz
-			Random generator = new Random();
 			Object[] values = facilitiesWithRoom.toArray();
 			Id<ActivityFacility> randomFacilityId = (Id<ActivityFacility>) values[generator.nextInt(values.length)];
 			ActivityFacility randomFacility = facilities.getFacilities().get(randomFacilityId);
-			// setting household facilty id and coords
+			// setting household facility id and coords
 			household.getAttributes().putAttribute("homeFacilityRefId", randomFacility.getId().toString());
 			Coord coord = randomFacility.getCoord();
 			household.getAttributes().putAttribute("x", coord.getX());
@@ -426,6 +444,7 @@ public class HouseholdPlayground
 	}
 
 	/**
+	 * adding households attributes to agents
 	 * @param households
 	 * @param population
 	 * @return
@@ -450,13 +469,14 @@ public class HouseholdPlayground
 	}
 
 	/**
+	 * Adding plans to agents
 	 * @param population
 	 * @param facilities
 	 * @param con
 	 * @return population
 	 * @throws SQLException
 	 */
-	public static Population addPlansToPopulation(Population population, ActivityFacilities facilities, Connection con)
+	public static Population addPlansToInternalAgents(Population population, ActivityFacilities facilities, Connection con)
 			throws SQLException
 	{
 		log.info("Adding plans to population");
@@ -467,12 +487,13 @@ public class HouseholdPlayground
 		statement.setFetchSize(50000);
 		String query = "select hhid,pnum,personTripNum,origpurp,finalDepartMinute,origtaz,modeCode from trips;";
 		ResultSet resultSet = statement.executeQuery(query);
-		// TODO trips has major problems. just notice they are repaired
 		PopulationFactory populationFactory = population.getFactory();
-		// setting necessary variables
+		// Initialising necessary variables
 		Person person = null;
 		Plan plan = populationFactory.createPlan();
 		Activity activity = null;
+		Random generator = new Random();
+		generator.setSeed(1234);
 		int i = 0;
 		// looping through trips
 		while (resultSet.next())
@@ -492,7 +513,6 @@ public class HouseholdPlayground
 				String taz = "" + resultSet.getInt("origtaz");
 				ArrayList<Id<ActivityFacility>> tazFacilities = ((TazFacilities) facilities.getAttributes()
 						.getAttribute(taz)).getAList(activityType);
-				Random generator = new Random();
 				Object[] values = tazFacilities.toArray();
 				Id<ActivityFacility> randomFacilityId = (Id<ActivityFacility>) values[generator.nextInt(values.length)];
 				activity = populationFactory.createActivityFromActivityFacilityId(activityType, randomFacilityId);
@@ -505,7 +525,7 @@ public class HouseholdPlayground
 			plan.addActivity(activity);
 			String mode = PopUtils.Mode(resultSet.getInt("modeCode"));
 			plan.addLeg(populationFactory.createLeg(mode));
-			// checking if person ended or that table ended
+			// checking if person trips ended or that table ended
 			if (!resultSet.next() || resultSet.getInt("personTripNum") == 1)
 			{
 				// create home activity as final activity
@@ -542,6 +562,7 @@ public class HouseholdPlayground
 	}
 
 	/**
+	 * Helper function to create home activity
 	 * @param population
 	 * @param populationFactory
 	 * @param personId
@@ -561,6 +582,7 @@ public class HouseholdPlayground
 	}
 
 	/**
+	 * adding external agents derived from OD matrix
 	 * @param population
 	 * @param facilities
 	 * @param con
@@ -574,6 +596,11 @@ public class HouseholdPlayground
 		ResultSet resultSet = pst.executeQuery();
 		PopulationFactory pf = population.getFactory();
 		Random rnd = MatsimRandom.getLocalInstance();
+		rnd.setSeed(1234);
+		Random origgenerator = new Random();
+		origgenerator.setSeed(1234);
+		Random destgenerator = new Random();
+		destgenerator.setSeed(1234);
 		log.info("Reading External agents");
 		int i = 0;
 		while (resultSet.next())
@@ -597,12 +624,10 @@ public class HouseholdPlayground
 			PersonUtils.setEmployed(person, true);// all external agents are working in JLM metro
 			PersonUtils.setLicence(person, "yes");// all drivers have license
 			person.getAttributes().putAttribute("subpopulation", "external");
-			// TODO complete facilities
 			// origin
 			String origtaz = "" + resultSet.getInt("origin");
 			ArrayList<Id<ActivityFacility>> origTazFacilities = ((TazFacilities) facilities.getAttributes()
 					.getAttribute(origtaz)).getAList(activityTargetString);
-			Random origgenerator = new Random();
 			Object[] origvalues = origTazFacilities.toArray();
 			Id<ActivityFacility> origRandomFacilityId = (Id<ActivityFacility>) origvalues[origgenerator
 					.nextInt(origvalues.length)];
@@ -610,11 +635,10 @@ public class HouseholdPlayground
 			String desttaz = "" + resultSet.getInt("destination");
 			ArrayList<Id<ActivityFacility>> destTazFacilities = ((TazFacilities) facilities.getAttributes()
 					.getAttribute(desttaz)).getAList(activityTargetString);
-			Random destgenerator = new Random();
 			Object[] destvalues = destTazFacilities.toArray();
 			Id<ActivityFacility> destRandomFacilityId = (Id<ActivityFacility>) destvalues[destgenerator
 					.nextInt(destvalues.length)];
-			// trip settings
+			// trip settings, setting plan
 			Plan plan = pf.createPlan();
 			Activity activityHome = pf.createActivityFromActivityFacilityId("home",
 					Id.create(origRandomFacilityId, ActivityFacility.class));
