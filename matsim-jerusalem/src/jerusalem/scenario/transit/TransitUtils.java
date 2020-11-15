@@ -32,6 +32,11 @@ public class TransitUtils {
 
 	private static final int SEC_PER_HOUR = SEC_PER_MIN * MIN_PER_HOUR;
 
+	/**
+	 * function to convert time string to seconds
+	 * @param timeStr
+	 * @return
+	 */
 	public static int secFromStr(final String timeStr) {
 		if (timeStr.indexOf(":") < 0) {
 			return Integer.parseInt(timeStr);
@@ -44,6 +49,11 @@ public class TransitUtils {
 		}
 	}
 
+	/**
+	 * function to convert seconds to time string
+	 * @param time_s
+	 * @return
+	 */
 	public static String strFromSec(int time_s) {
 		final int h = time_s / 3600;
 		time_s -= h * 3600;
