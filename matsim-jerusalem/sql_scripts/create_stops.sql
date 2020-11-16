@@ -1,3 +1,5 @@
+--creating stop for public transportation scheduele
+--unique_links - links with stops
 create table if not exists stops as with unique_links as(
 select
 	distinct i, j

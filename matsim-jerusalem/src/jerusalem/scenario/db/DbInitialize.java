@@ -75,7 +75,7 @@ public class DbInitialize {
 		executeSQLFromFile(own_path + "/sql_scripts/wrapup.sql", con);
 //		prepare data for model
 		executeSQLFromFile(own_path + "/sql_scripts/create_households_coordinates.sql", con);
-		executeSQLFromFile(own_path + "/sql_scripts/create_other_activities_coordinates.sql", con);
+		executeSQLFromFile(own_path + "/sql_scripts/create_bental_jtmt_conversion.sql", con);
 		executeSQLFromFile(own_path + "/sql_scripts/create_amenities.sql", con);
 		executeSQLFromFile(own_path + "/sql_scripts/create_stops.sql", con);
 		executeSQLFromFile(own_path + "/sql_scripts/create_pt_routes.sql", con);

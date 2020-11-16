@@ -1,8 +1,10 @@
+--creating amenities - facilities not for housing
 select
 	*
 into
 	amenities
 from
+--conversion from bental to jtmt to matsim, adding taz to buildings, filter mixed residential, moch nodes and nkdg outside JLM metro
 	(with poi_blds_coverted_taz as (
 	select
 		uniq_id, poi_bldg.usg_group, poi_bldg.usg_code, usg_sp_name, bldg_id, e_ord x, n_ord y, fake, taz600.taz, jtmt_matsim_code_conversion.MATSim_activity
@@ -18,7 +20,9 @@ from
 	where
 		poi_bldg.usg_code != 7600
 		and (taz < 9000
-		or fake)), taz_opening as(
+		or fake)), 
+--		creating opening hours
+		taz_opening as(
 	select
 		desttaz, MATSim_activity, min(trips.finalarriveminute) opening_time_dest
 	from
@@ -28,7 +32,9 @@ from
 	group by
 		desttaz, MATSim_activity
 	order by
-		desttaz, MATSim_activity ), taz_closing as(
+		desttaz, MATSim_activity ),
+--		creating closing hours
+		taz_closing as(
 	select
 		origtaz, MATSim_activity, max(finaldepartminute) closing_time_orig
 	from

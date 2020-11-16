@@ -1,3 +1,5 @@
+--processing line_path to readible pt_routes
+--orig_pt_routes - joining link id and data from lines, adding cumsum_stop
 create table if not exists pt_routes as with orig_pt_routes as (
 select
 	line_path.line, line_path.seq_number, concat(links.i, '_', links.j, '_', links.type) as linkid, max(seq_number) over (partition by line) as last_link, line_path.stop, lines.transport_mode, lines.description, links.length_met, sum(line_path.stop) over(partition by line_path.line
@@ -12,6 +14,7 @@ left join lines on
 	line_path.line = lines.lines
 order by
 	line, seq_number),
+--summed  - summing distance between stops	
 summed as(
 select
 	line, cumsum_stop, sum (length_met) distance
@@ -21,6 +24,7 @@ group by
 	line, cumsum_stop
 order by
 	line, cumsum_stop),
+--	joining summed and orig_pt_routes
 final_t as(
 select
 	orig_pt_routes.*, summed.distance
@@ -29,6 +33,7 @@ from
 left join summed on
 	orig_pt_routes.line = summed.line
 	and orig_pt_routes.cumsum_stop = summed.cumsum_stop)
+--	calculating times in stop and stalling
 select
 	line,
 	seq_number,

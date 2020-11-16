@@ -14,7 +14,7 @@ ON taz600 (taz);
 ALTER TABLE taz600 
 ADD CONSTRAINT unique_taz 
 UNIQUE USING INDEX taz_600_taz;
---creating a table for taz centroids - might by redundant
+--creating a table for taz centroids - might be redundant
 CREATE TABLE IF NOT EXISTS taz_centroid AS 
 	SELECT taz,
 	 st_x(st_centroid(geometry))::int AS x,
@@ -85,7 +85,7 @@ from bldg_cent
 where fake;
 
 
---query to load links to network
+--query to load links to spatial network
 --select l.*,st_makeline(fa.geometry,fb.geometry) line 
 --from links l 
 --left join nodes fa 
@@ -93,10 +93,7 @@ where fake;
 --left join nodes fb 
 --on l.j = fb.i::integer
  
- --creating indices
---CREATE INDEX idx_hhid_t ON trips(hhid);
---CREATE INDEX idx_hhid_p ON persons(hhid);
---CREATE INDEX idx_hhid_h ON households(hhid);
+--creating indices
 CREATE INDEX idx_bldg_cent ON bldg_cent USING GIST (centroid);
 CREATE INDEX idx_inner_taz ON inner_taz USING GIST (geometry);
 CREATE INDEX idx_nodes ON nodes USING GIST (geometry);

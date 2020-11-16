@@ -1,9 +1,11 @@
+--this script connects the postgis exyension, resets all the tables, and prepares the tables based on nonspatial sources 
 CREATE EXTENSION IF NOT EXISTS postgis;
+-- I don't remember why this is here
 SET search_path TO "$user", postgis, topology, public;
 DROP TABLE IF EXISTS trips, taz_centroid, persons,households, 
 households_final,taz600,bldg,poi_bldg ,inner_taz,bldg_cent,
 bental_households,bental_jtmt_code_conversion,nodes,links,line_path,lines,headway,headway_periods,
-vehicle_types,households_in_polygon,households_final,trips_final,stops,pt_routes,amenities,readable_headway,jtmt_matsim_code_conversion,detailed_headway,counts,external_trips_matrix CASCADE;
+vehicle_types,trips_final,stops,pt_routes,amenities,readable_headway,jtmt_matsim_code_conversion,detailed_headway,counts,external_trips_matrix,external_agents,counts_data CASCADE;
 CREATE TABLE IF NOT EXISTS households (
   hhid INT NOT NULL CHECK (hhid >= 0),
   pumsSerialNo real NOT NULL CHECK (pumsSerialNo >= 0),

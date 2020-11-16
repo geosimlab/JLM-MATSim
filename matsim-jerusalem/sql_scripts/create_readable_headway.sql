@@ -1,3 +1,5 @@
+--readible headwy for all transit lines. 
+--headway_long - unnest headway
 create table if not exists readable_headway as with headway_long as (
 select
 	line, unnest(array['first_period', 'second_period', 'third_period', 'fourth_period', 'fifth_period', 'sixth_period', 'seventh_period', 'eighth_period', 'ninth_period', 'tenth_period' ]) as period_of_day, unnest(array[first_period, second_period, third_period, fourth_period, fifth_period, sixth_period, seventh_period, eighth_period, ninth_period, tenth_period]) as headway

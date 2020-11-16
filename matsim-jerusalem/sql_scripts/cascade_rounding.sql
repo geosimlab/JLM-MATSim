@@ -1,3 +1,5 @@
+-- a dedicated function to round floats while keeping their sum identical. required for calculation of housing units per facility
+-- got help from stackoverflow. https://stackoverflow.com/questions/61408845/how-to-perform-cascade-rounding-in-postgresql
 drop type if exists cr_type cascade;
 create type cr_type as (int_value int, fp_total float, int_total int);
 
