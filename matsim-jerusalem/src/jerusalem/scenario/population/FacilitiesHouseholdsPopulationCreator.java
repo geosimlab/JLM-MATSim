@@ -67,18 +67,15 @@ public class FacilitiesHouseholdsPopulationCreator
 {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private static final Properties props = DbUtils.readProperties("database.properties");
-	private final static String HOUSEHOLDS_ID = "" + 1;
-	private final static String FACILITIES_ID = "" + 3;
-	private final static String POPULATION_ID = "" + 7;
-	private final static String FAMILY_VEHICLES_ID = "" + 4;
+	private final static String HOUSEHOLDS_ID = "" + 3;
+	private final static String FACILITIES_ID = "" + 5;
+	private final static String POPULATION_ID = "" + 9;
 	public final static String POPULATION_OUTPUT_PATH = props.getProperty("folder.output_folder") + POPULATION_ID
 			+ ".population.xml.gz";
 	public final static String HOUSEHOLDS_OUTPUT_PATH = props.getProperty("folder.output_folder") + HOUSEHOLDS_ID
 			+ ".households.xml.gz";
 	public final static String FACILITIES_OUTPUT_PATH = props.getProperty("folder.output_folder") + FACILITIES_ID
 			+ ".facilities.xml.gz";
-	public final static String FAMILY_VEHICLES_OUTPUT_PATH = props.getProperty("folder.output_folder")
-			+ FAMILY_VEHICLES_ID + ".family_vehicles.xml.gz";
 
 	public static void main(String[] args) throws SQLException
 	{

@@ -1,6 +1,7 @@
 package jerusalem.scenario.db;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -16,6 +17,7 @@ import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
 
 import jerusalem.scenario.network.CreateNetwork;
+import jerusalem.turnrestrictionsparser.Turns2Network;
 
 /**
  * @author User
@@ -32,7 +34,8 @@ public class DbInitialize {
 	public final static String url = "jdbc:postgresql://" + db_url + ":" + port + "/" + db_name + "?loggerLevel=DEBUG";
 
 	public static void main(String[] args) throws SQLException, FileNotFoundException, IOException {
-		Properties props = DbUtils.readProperties("database.properties");
+		Turns2Network.main(null);
+		Properties props = DbUtils.readProperties("database.properties");	
 		String own_path = System.getProperty("user.dir").replace("\\", "/");
 		String ogr2ogr_path = props.getProperty("folder.ogr2ogr_path");
 		DriverManager.setLogWriter(new PrintWriter(System.out));
@@ -47,15 +50,15 @@ public class DbInitialize {
 		copyTableFromCSV(props.getProperty("population.trip_path"), "trips", con);
 		copyTableFromCSV(own_path + "/data/BENTAL_JTMT_CODE_CONVERSION.csv", "bental_jtmt_code_conversion", con);
 		copyTableFromCSV(own_path + "/data/jtmt_matsim_code_conversion.csv", "jtmt_matsim_code_conversion", con);
-		copyTableFromCSV(props.getProperty("network.nodes_path"), "nodes", con);
-		copyTableFromCSV(props.getProperty("network.links_path"), "links", con);
+		copyTableFromCSV(getPathToConvFile(props.getProperty("network.nodes_path")), "nodes", con);
+		copyTableFromCSV(getPathToConvFile(props.getProperty("network.links_path")), "links", con);
 		copyTableFromCSV(own_path + "/data/vehicle_types.csv", "vehicle_types", con);
 		copyTableFromCSV(props.getProperty("transit.lines_path"), "lines", con);
-		copyTableFromCSV(props.getProperty("transit.line_path_path"), "line_path", con);
+		copyTableFromCSV(getPathToConvFile(props.getProperty("transit.line_path_path")), "line_path", con);
 		copyTableFromCSV(props.getProperty("transit.headway_path"), "headway", con);
 		copyTableFromCSV(props.getProperty("transit.headway_path2"), "detailed_headway", con);
 		copyTableFromCSV(own_path + "/data/headway_periods.csv", "headway_periods", con);
-		copyTableFromCSV(props.getProperty("counts.counts_path"), "counts", con);
+		copyTableFromCSV(getPathToConvFile(props.getProperty("counts.counts_path")), "counts", con);
 		copyTableFromCSV(props.getProperty("external.matrix_path"), "external_trips_matrix", con);
 
 		// copy tables from shp/gdb
@@ -130,6 +133,15 @@ public class DbInitialize {
 			log.info(e.getClass().getTypeName() + ": " + e.getMessage());
 		}
 
+	}
+	/**
+	 * @param path
+	 * @return
+	 */
+	public static String getPathToConvFile(String path) {
+		File f = new File(path);
+		String filename = f.getParent() + "/t_" + f.getName();
+		return filename;
 	}
 
 }
