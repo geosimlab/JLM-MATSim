@@ -56,7 +56,7 @@ public class CreateCounts
 			double val = resultSet.getDouble("yaram");
 			count.createVolume(h, val);
 		}
-		new CountsWriter(counts).write("D:/matsim_jlm/output/"+COUNTS_ID + ".counts.xml.gz");
+		new CountsWriter(counts).write("D:/matsim_jlm/output/"+COUNTS_ID + "_1.counts.xml.gz");
 	}
 
 }
