@@ -48,7 +48,7 @@ public class CreateNetwork {
 	private final static Properties props = DbUtils.readProperties("database.properties");
 //	All link have minimum 500 capacity in MATSim. common practice, asked kai nagel. 
 	private final static int MIN_FLOW_CAPACITY = 500;
-	public final static String NETWORK_ID = "12";
+	public final static String NETWORK_ID = "13";
 	public final static String NETWORK_OUTPUT_PATH = props.getProperty("folder.output_folder") + NETWORK_ID
 			+ ".network.xml.gz";
 //	whether links of certain types be removed. 
@@ -212,6 +212,9 @@ public class CreateNetwork {
 				jerusalemLink.setCapacity(Math.max(MIN_FLOW_CAPACITY,(int) resultSet.getDouble("linkcap")));
 				jerusalemLink.setFreeSpeed((double) (int) resultSet.getDouble("s0link_m_per_s"));
 			}
+//			if(jerusalemLink.getFreeSpeed() < 0) {
+//				System.out.println("what?");
+//			}
 			String id = jerusalemLink.getFromId() + "_" + jerusalemLink.getToId() + "_"
 					+ (int) jerusalemLink.getRoadType();
 			linkArr.add(jerusalemLink);
@@ -261,6 +264,7 @@ public class CreateNetwork {
 				Node fromNode = net.getNodes().get(fromID);
 				Node toNode = net.getNodes().get(toID);
 				link = fac.createLink(Id.createLinkId(linkId), fromNode, toNode);
+
 				double travelTime = jerusalemLink.getLength() / jerusalemLink.getFreeSpeed();
 				setLinkAttributes(link, jerusalemLink.getCapacity(), jerusalemLink.getLength(),
 						jerusalemLink.getFreeSpeed(),travelTime ,jerusalemLink.getMode(), jerusalemLink.getLaneNum());
@@ -286,7 +290,12 @@ public class CreateNetwork {
 		link.setLength(length);
 		// agents have to reach the end of the link before the time step ends to
 		// be able to travel forward in the next time step (matsim time step logic)
-		link.setFreespeed(link.getLength() / (travelTime - 0.1));
+		if((travelTime - 0.1) < 0) {
+			link.setFreespeed(link.getLength() / (travelTime));
+		}else {
+			link.setFreespeed(link.getLength() / (travelTime - 0.1));	
+		}
+		
 		link.setAllowedModes(modes);
 		link.setNumberOfLanes(numberOfLanes);
 	}

@@ -342,3 +342,9 @@ using(cid,linkid)
 where link_id is not null 
 order by count_year,cid,link_id,hour_of_count;
 
+
+
+with university_taz as (select desttaz, count(*) from trips t where destpurp = 2 group by desttaz)
+select * from university_taz
+left join taz600
+on university_taz.desttaz =taz600.taz  

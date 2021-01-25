@@ -67,9 +67,9 @@ public class FacilitiesHouseholdsPopulationCreator
 {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private static final Properties props = DbUtils.readProperties("database.properties");
-	private final static String HOUSEHOLDS_ID = "" + 3;
-	private final static String FACILITIES_ID = "" + 5;
-	private final static String POPULATION_ID = "" + 9;
+	private final static String HOUSEHOLDS_ID = "" + 4;
+	private final static String FACILITIES_ID = "" + 6;
+	private final static String POPULATION_ID = "" + 10;
 	public final static String POPULATION_OUTPUT_PATH = props.getProperty("folder.output_folder") + POPULATION_ID
 			+ ".population.xml.gz";
 	public final static String HOUSEHOLDS_OUTPUT_PATH = props.getProperty("folder.output_folder") + HOUSEHOLDS_ID
@@ -292,7 +292,7 @@ public class FacilitiesHouseholdsPopulationCreator
 			facilities.getAttributes().putAttribute("" + resultSet.getInt("taz"), tazFacilities);
 		}
 		// getting housing facilities from bental
-		String query = "select st_x(centroid) x, st_y(centroid) y, taz,households_at_bldg,uniq_id from bental_households;";
+		String query = "select st_x(centroid) x, st_y(centroid) y, taz,households_at_bldg,uniq_id,fake from bental_households;";
 		pst = con.prepareStatement(query);
 		resultSet = pst.executeQuery();
 		ActivityFacilitiesFactory aff = scenario.getActivityFacilities().getFactory();
@@ -308,7 +308,11 @@ public class FacilitiesHouseholdsPopulationCreator
 			ActivityFacilityImpl activityFacility = (ActivityFacilityImpl) aff.createActivityFacility(facilityId,
 					facilityCoord);
 			// all facilities in bental households have home, tjlm and fjlm activites			
-			activityFacility.createAndAddActivityOption("home");
+			activityFacility.createAndAddActivityOption("home_secular");
+			activityFacility.createAndAddActivityOption("home_ultra-orthodox");
+			activityFacility.createAndAddActivityOption("home_arab");
+			activityFacility.createAndAddActivityOption("home_tjlm");
+			activityFacility.createAndAddActivityOption("home_fjlm");
 			activityFacility.createAndAddActivityOption("tjlm");
 			activityFacility.createAndAddActivityOption("fjlm");
 			// setting number of housing units and occupied housing units
@@ -327,6 +331,30 @@ public class FacilitiesHouseholdsPopulationCreator
 			} else
 			{
 				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId, "empty");
+			}
+//			adding episim activities to fake bldg
+			if(resultSet.getBoolean("fake")) {
+				activityFacility.createAndAddActivityOption("university");
+				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+						"university");
+				activityFacility.createAndAddActivityOption("high_school");
+				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+						"high_school");
+				activityFacility.createAndAddActivityOption("junior_high");
+				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+						"junior_high");
+				activityFacility.createAndAddActivityOption("elementary");
+				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+						"elementary");
+				activityFacility.createAndAddActivityOption("kindergarden");
+				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+						"kindergarden");
+				activityFacility.createAndAddActivityOption("religion_jewish");
+				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+						"religion_jewish");
+				activityFacility.createAndAddActivityOption("religion_arab");
+				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+						"religion_arab");
 			}
 			facilities.addActivityFacility(activityFacility);
 			if (i % 10000 == 0)
@@ -348,7 +376,7 @@ public class FacilitiesHouseholdsPopulationCreator
 			Id<ActivityFacility> facilityId = Id.create(amen_uniq_id, ActivityFacility.class);
 			String taz = "" + resultSet.getInt("taz");
 			ActivityFacilityImpl activityFacility = null;
-			// condition to differntiate between mixed housing facilities and pure amenities
+			// condition to differentiate between mixed housing facilities and pure amenities
 			if (!facilities.getFacilities().containsKey(facilityId))
 			{
 				Coord facilityCoord = new Coord(resultSet.getDouble("x"), resultSet.getDouble("y"));
@@ -358,10 +386,36 @@ public class FacilitiesHouseholdsPopulationCreator
 				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId, "tjlm");
 				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId, "fjlm");
 				facilities.addActivityFacility(activityFacility);
+//				adding episim activities to fake bldg
+				if(resultSet.getBoolean("fake")) {
+					activityFacility.createAndAddActivityOption("university");
+					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+							"university");
+					activityFacility.createAndAddActivityOption("high_school");
+					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+							"high_school");
+					activityFacility.createAndAddActivityOption("junior_high");
+					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+							"junior_high");
+					activityFacility.createAndAddActivityOption("elementary");
+					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+							"elementary");
+					activityFacility.createAndAddActivityOption("kindergarden");
+					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+							"kindergarden");
+					activityFacility.createAndAddActivityOption("religion_jewish");
+					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+							"religion_jewish");
+					activityFacility.createAndAddActivityOption("religion_arab");
+					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
+							"religion_arab");
+				}
+							
 			} else
 			{
 				activityFacility = (ActivityFacilityImpl) facilities.getFacilities().get(facilityId);
 			}
+	
 			// adding opening and closing time to the facility
 			// opening and closing time is computed by taz in the sql query create amenites
 			double start_time = (resultSet.getDouble("opening_time") + 180) * 60;
@@ -495,12 +549,17 @@ public class FacilitiesHouseholdsPopulationCreator
 		// looping through trips
 		while (resultSet.next())
 		{
-			String activityType = PopUtils.ActivityType(resultSet.getInt("origPurp"));
+			
 			String id = resultSet.getInt("hhid") + "-" + resultSet.getInt("pnum");
 			Id<Person> personId = Id.create(id, Person.class);
+//			quick and dirty addition - set school/religion by age / group
+			Person tmp = population.getPersons().get(personId);
+			String sector = (String) tmp.getAttributes().getAttribute("subpopulation");
+			int age = (int) tmp.getAttributes().getAttribute("age");
+			String activityType = PopUtils.ActivityType(resultSet.getInt("origPurp"),sector,age);
 			double endTime = resultSet.getDouble("finalDepartMinute") * 60 + 3 * 60 * 60;
 			// if home, go to person attributes and set a home activity
-			if (activityType == "home")
+			if (activityType.substring(0, 4) == "home")
 			{
 				activity = createHomeActivity(population, populationFactory, personId, facilities);
 			}
@@ -572,7 +631,10 @@ public class FacilitiesHouseholdsPopulationCreator
 		String homeFacilityRefId = (String) population.getPersons().get(personId).getAttributes()
 				.getAttribute("homeFacilityRefId");
 		Id<ActivityFacility> facilityId = Id.create(homeFacilityRefId, ActivityFacility.class);
-		Activity activity = populationFactory.createActivityFromActivityFacilityId("home", facilityId);
+//		getting sector out of persons attributes
+		String sector = (String) population.getPersons().get(personId).getAttributes().getAttribute("subpopulation");
+		sector = sector.split("_")[1].toLowerCase();
+		Activity activity = populationFactory.createActivityFromActivityFacilityId("home_" + sector , facilityId);
 		activity.setCoord(facilities.getFacilities().get(facilityId).getCoord());
 		activity.setLinkId(facilities.getFacilities().get(facilityId).getLinkId());
 		return activity;
@@ -637,7 +699,7 @@ public class FacilitiesHouseholdsPopulationCreator
 					.nextInt(destvalues.length)];
 			// trip settings, setting plan
 			Plan plan = pf.createPlan();
-			Activity activityHome = pf.createActivityFromActivityFacilityId("home",
+			Activity activityHome = pf.createActivityFromActivityFacilityId("home_" + activityTargetString,
 					Id.create(origRandomFacilityId, ActivityFacility.class));
 			activityHome.setCoord(facilities.getFacilities().get(origRandomFacilityId).getCoord());
 			activityHome.setLinkId(facilities.getFacilities().get(origRandomFacilityId).getLinkId());

@@ -11,6 +11,13 @@ public class TazFacilities
 	protected ArrayList<Id<ActivityFacility>> householdsFull = new ArrayList<Id<ActivityFacility>>();
 	protected ArrayList<Id<ActivityFacility>> amenitiesWork = new ArrayList<Id<ActivityFacility>>();
 	protected ArrayList<Id<ActivityFacility>> amenitiesSchool = new ArrayList<Id<ActivityFacility>>();
+	protected ArrayList<Id<ActivityFacility>> amenitiesUniversity = new ArrayList<Id<ActivityFacility>>();
+	protected ArrayList<Id<ActivityFacility>> amenitiesKindergarden = new ArrayList<Id<ActivityFacility>>();
+	protected ArrayList<Id<ActivityFacility>> amenitiesElementary = new ArrayList<Id<ActivityFacility>>();
+	protected ArrayList<Id<ActivityFacility>> amenitiesJuniorHigh = new ArrayList<Id<ActivityFacility>>();
+	protected ArrayList<Id<ActivityFacility>> amenitiesHighSchool = new ArrayList<Id<ActivityFacility>>();
+	protected ArrayList<Id<ActivityFacility>> amenitiesReligionJewish = new ArrayList<Id<ActivityFacility>>();
+	protected ArrayList<Id<ActivityFacility>> amenitiesReligionArab = new ArrayList<Id<ActivityFacility>>();
 	protected ArrayList<Id<ActivityFacility>> amenitiesleisure = new ArrayList<Id<ActivityFacility>>();
 	protected ArrayList<Id<ActivityFacility>> amenitiesOther = new ArrayList<Id<ActivityFacility>>();
 	protected ArrayList<Id<ActivityFacility>> amenitiesTjlm = new ArrayList<Id<ActivityFacility>>();
@@ -34,11 +41,32 @@ public class TazFacilities
 		case "work":
 			result = amenitiesWork;
 			break;
+		case "university":
+			result = amenitiesUniversity;
+			break;
 		case "school":
 			result = amenitiesSchool;
 			break;
+		case "high_school":
+			result = amenitiesHighSchool;
+			break;
+		case "junior_high":
+			result = amenitiesJuniorHigh;
+			break;
+		case "elementary":
+			result = amenitiesElementary;
+			break;
+		case "kindergarden":
+			result = amenitiesKindergarden;
+			break;
 		case "leisure":
 			result = amenitiesleisure;
+			break;
+		case "religion_jewish":
+			result = amenitiesReligionJewish;
+			break;
+		case "religion_arab":
+			result = amenitiesReligionArab;
 			break;
 		case "other":
 			result = amenitiesOther;
@@ -53,6 +81,76 @@ public class TazFacilities
 			break;
 		}
 		return result;
+	}
+
+	public ArrayList<Id<ActivityFacility>> getAmenitiesUniversity()
+	{
+		return amenitiesUniversity;
+	}
+
+	public void setAmenitiesUniversity(ArrayList<Id<ActivityFacility>> amenitiesUniversity)
+	{
+		this.amenitiesUniversity = amenitiesUniversity;
+	}
+
+	public ArrayList<Id<ActivityFacility>> getAmenitiesKindergarden()
+	{
+		return amenitiesKindergarden;
+	}
+
+	public void setAmenitiesKindergarden(ArrayList<Id<ActivityFacility>> amenitiesKindergarden)
+	{
+		this.amenitiesKindergarden = amenitiesKindergarden;
+	}
+
+	public ArrayList<Id<ActivityFacility>> getAmenitiesElementary()
+	{
+		return amenitiesElementary;
+	}
+
+	public void setAmenitiesElementary(ArrayList<Id<ActivityFacility>> amenitiesElementary)
+	{
+		this.amenitiesElementary = amenitiesElementary;
+	}
+
+	public ArrayList<Id<ActivityFacility>> getAmenitiesJuniorHigh()
+	{
+		return amenitiesJuniorHigh;
+	}
+
+	public void setAmenitiesJuniorHigh(ArrayList<Id<ActivityFacility>> amenitiesJuniorHigh)
+	{
+		this.amenitiesJuniorHigh = amenitiesJuniorHigh;
+	}
+
+	public ArrayList<Id<ActivityFacility>> getAmenitiesHighSchool()
+	{
+		return amenitiesHighSchool;
+	}
+
+	public void setAmenitiesHighSchool(ArrayList<Id<ActivityFacility>> amenitiesHighSchool)
+	{
+		this.amenitiesHighSchool = amenitiesHighSchool;
+	}
+
+	public ArrayList<Id<ActivityFacility>> getAmenitiesReligionJewish()
+	{
+		return amenitiesReligionJewish;
+	}
+
+	public void setAmenitiesReligionJewish(ArrayList<Id<ActivityFacility>> amenitiesReligionJewish)
+	{
+		this.amenitiesReligionJewish = amenitiesReligionJewish;
+	}
+
+	public ArrayList<Id<ActivityFacility>> getAmenitiesReligionArab()
+	{
+		return amenitiesReligionArab;
+	}
+
+	public void setAmenitiesReligionArab(ArrayList<Id<ActivityFacility>> amenitiesReligionArab)
+	{
+		this.amenitiesReligionArab = amenitiesReligionArab;
 	}
 
 	public ArrayList<Id<ActivityFacility>> getHouseholdsEmpty()
@@ -156,8 +254,29 @@ public class TazFacilities
 		case "school":
 			this.amenitiesSchool.add(facilityId);
 			break;
+		case "university":
+			this.amenitiesUniversity.add(facilityId);
+			break;
+		case "high_school":
+			this.amenitiesHighSchool.add(facilityId);
+			break;
+		case "junior_high":
+			this.amenitiesJuniorHigh.add(facilityId);
+			break;
+		case "elementary":
+			this.amenitiesElementary.add(facilityId);
+			break;
+		case "kindergarden":
+			this.amenitiesKindergarden.add(facilityId);
+			break;
 		case "leisure":
 			this.amenitiesleisure.add(facilityId);
+			break;
+		case "religion_jewish":
+			this.amenitiesReligionJewish.add(facilityId);
+			break;
+		case "religion_arab":
+			this.amenitiesReligionArab.add(facilityId);
 			break;
 		case "other":
 			this.amenitiesOther.add(facilityId);
@@ -194,9 +313,29 @@ public class TazFacilities
 		case "school":
 			this.amenitiesSchool.remove(facilityId);
 			break;
+		case "university":
+			this.amenitiesUniversity.remove(facilityId);
+			break;
+		case "high_school":
+			this.amenitiesHighSchool.remove(facilityId);
+			break;
+		case "junior_high":
+			this.amenitiesJuniorHigh.remove(facilityId);
+			break;
+		case "elementary":
+			this.amenitiesElementary.remove(facilityId);
+			break;
+		case "kindergarden":
+			this.amenitiesKindergarden.remove(facilityId);
+			break;
 		case "leisure":
 			this.amenitiesleisure.remove(facilityId);
 			break;
+		case "religion_jewish":
+			this.amenitiesReligionJewish.remove(facilityId);
+			break;
+		case "religion_arab":
+			this.amenitiesReligionArab.remove(facilityId);
 		case "other":
 			this.amenitiesOther.remove(facilityId);
 			break;

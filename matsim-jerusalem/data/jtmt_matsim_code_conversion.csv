@@ -2,8 +2,12 @@ jtmt_code,jtmt_activity,MATSim_activity
 0,home,home
 1,workplace,work
 15,work-related business,other
-2,university,school
+2,university,university
 3,school,school
+31,high_school,high_school
+32,junior_high,junior_high
+33,elementary,elementary
+34,kindergarden,kindergarden
 411,pure escort,other
 412,ridesharing,other
 42,other escort,other
@@ -18,3 +22,6 @@ jtmt_code,jtmt_activity,MATSim_activity
 8,Visiting relatives or friends,leisure
 9,other discretionary,other
 91,religious,other
+911,religion_jewish,religion_jewish
+912,religion_arab,religion_arab
+

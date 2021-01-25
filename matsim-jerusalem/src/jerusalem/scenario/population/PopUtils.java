@@ -13,18 +13,46 @@ public class PopUtils {
 	 * @param int <b>i</b>
 	 * @return String actResult
 	 */
-	public static String ActivityType(int activity) {
+	public static String ActivityType(int activity, String sector,int age) {
+		if(activity == 3) {
+			activity = schoolActivities(age);
+		} else if (activity == 9) {
+			activity = religiousActivities(sector);
+		}
 		String actResult = null;
 		switch (activity) {
 		case 0:// 0. Home
 			actResult = "home";
 			break;
+		case 100:// 100. home_secular
+			actResult = "home_secular";
+			break;
+		case 101:// 101. home_ultra-orthodox
+			actResult = "home_ultra-orthodox";
+			break;
+		case 102:// 102. home_arab
+			actResult = "home_arab";
+			break;
 		case 1:// 1. Workplace
 			actResult = "work";
 			break;
 		case 2:// 2. University
+			actResult = "university";
+			break;
 		case 3:// 3. School
 			actResult = "school";
+			break;
+		case 31:// 31. high school(added for episim)
+			actResult = "high_school";
+			break;
+		case 32:// 32. junior_high (added for episim)
+			actResult = "junior_high";
+			break;
+		case 33:// 33. elementary school (added for episim)
+			actResult = "elementary";
+			break;
+		case 34:// 34. kindergarden (added for episim)
+			actResult = "kindergarden";
 			break;
 		case 5:// 5. Shopping
 		case 7:// 7. Eating out
@@ -33,6 +61,12 @@ public class PopUtils {
 		case 73:// 7.3. Dinner
 		case 8:// 8. Visiting relatives or friends
 			actResult = "leisure";
+			break;
+		case 911:// 911. jewish religion
+			actResult = "religion_jewish";
+			break;
+		case 912:// 912. arab religion
+			actResult = "religion_arab";
 			break;
 		default:// 4. Escorting
 			// 4.1. School escort
@@ -187,4 +221,67 @@ public class PopUtils {
 		}
 		return carAvailResult;
 	}
+	
+	/**
+	 * Returns repaired school activity according to episim
+	 * @param age
+	 * @param activity
+	 * @param sector
+	 * @return
+	 */
+	public static int schoolActivities(int age) {
+		int schoolActivity = 0;
+		switch(age) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+			schoolActivity = 34;
+			break;
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+			schoolActivity = 33;
+			break;
+		case 13:
+		case 14:
+		case 15:
+			schoolActivity = 32;
+			break;
+		case 16:
+		case 17:
+		case 18:
+			schoolActivity = 31;
+			break;
+		}
+		return schoolActivity;
+	}
+	/**
+	 * Returns repaired religious activity according to episim
+	 * @param age
+	 * @param activity
+	 * @param sector
+	 * @return
+	 */
+	public static int religiousActivities(String sector) {
+		int religiousActivity= 0;
+		switch(sector) {
+		case "internal_Arab":
+			religiousActivity = 912;
+			break;
+		case "internal_Ultra-Orthodox":
+		case "internal_Secular":
+			religiousActivity = 911;
+			break;
+		}
+		return religiousActivity;
+	}
+
+	
 }
