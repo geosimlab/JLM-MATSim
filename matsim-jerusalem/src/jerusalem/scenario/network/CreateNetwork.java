@@ -48,7 +48,7 @@ public class CreateNetwork {
 	private final static Properties props = DbUtils.readProperties("database.properties");
 //	All link have minimum 500 capacity in MATSim. common practice, asked kai nagel. 
 	private final static int MIN_FLOW_CAPACITY = 500;
-	public final static String NETWORK_ID = "13";
+	public final static String NETWORK_ID = "14";
 	public final static String NETWORK_OUTPUT_PATH = props.getProperty("folder.output_folder") + NETWORK_ID
 			+ ".network.xml.gz";
 //	whether links of certain types be removed. 
@@ -298,6 +298,9 @@ public class CreateNetwork {
 		
 		link.setAllowedModes(modes);
 		link.setNumberOfLanes(numberOfLanes);
+		if(numberOfLanes == 0) {
+			link.setNumberOfLanes(1);	
+		}
 	}
 
 	/**

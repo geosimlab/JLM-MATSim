@@ -136,8 +136,8 @@ CREATE TABLE IF NOT EXISTS bental_jtmt_code_conversion (
 
 CREATE TABLE IF NOT EXISTS jtmt_matsim_code_conversion (
     jtmt_code integer NOT NULL,
-    jtmt_activity VARCHAR(50) NOT NULL,
-	matsim_activity VARCHAR(20) NOT null,
+    jtmt_activity VARCHAR(100) NOT NULL,
+	matsim_activity VARCHAR(100) NOT null,
 	primary key (jtmt_code)
 );
 
