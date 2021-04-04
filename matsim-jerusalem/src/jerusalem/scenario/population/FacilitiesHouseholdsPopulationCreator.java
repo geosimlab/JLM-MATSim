@@ -67,9 +67,9 @@ public class FacilitiesHouseholdsPopulationCreator
 {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private static final Properties props = DbUtils.readProperties("database.properties");
-	private final static String HOUSEHOLDS_ID = "" + 4;
-	private final static String FACILITIES_ID = "" + 6;
-	private final static String POPULATION_ID = "" + 10;
+	private final static String HOUSEHOLDS_ID = "" + 5;
+	private final static String FACILITIES_ID = "" + 7;
+	private final static String POPULATION_ID = "" + 11;
 	public final static String POPULATION_OUTPUT_PATH = props.getProperty("folder.output_folder") + POPULATION_ID
 			+ ".population.xml.gz";
 	public final static String HOUSEHOLDS_OUTPUT_PATH = props.getProperty("folder.output_folder") + HOUSEHOLDS_ID
@@ -332,30 +332,6 @@ public class FacilitiesHouseholdsPopulationCreator
 			{
 				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId, "empty");
 			}
-//			adding episim activities to fake bldg
-			if(resultSet.getBoolean("fake")) {
-				activityFacility.createAndAddActivityOption("university");
-				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-						"university");
-				activityFacility.createAndAddActivityOption("high_school");
-				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-						"high_school");
-				activityFacility.createAndAddActivityOption("junior_high");
-				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-						"junior_high");
-				activityFacility.createAndAddActivityOption("elementary");
-				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-						"elementary");
-				activityFacility.createAndAddActivityOption("kindergarden");
-				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-						"kindergarden");
-				activityFacility.createAndAddActivityOption("religion_jewish");
-				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-						"religion_jewish");
-				activityFacility.createAndAddActivityOption("religion_arab");
-				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-						"religion_arab");
-			}
 			facilities.addActivityFacility(activityFacility);
 			if (i % 10000 == 0)
 			{
@@ -386,30 +362,7 @@ public class FacilitiesHouseholdsPopulationCreator
 				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId, "tjlm");
 				((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId, "fjlm");
 				facilities.addActivityFacility(activityFacility);
-//				adding episim activities to fake bldg
-				if(resultSet.getBoolean("fake")) {
-					activityFacility.createAndAddActivityOption("university");
-					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-							"university");
-					activityFacility.createAndAddActivityOption("high_school");
-					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-							"high_school");
-					activityFacility.createAndAddActivityOption("junior_high");
-					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-							"junior_high");
-					activityFacility.createAndAddActivityOption("elementary");
-					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-							"elementary");
-					activityFacility.createAndAddActivityOption("kindergarden");
-					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-							"kindergarden");
-					activityFacility.createAndAddActivityOption("religion_jewish");
-					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-							"religion_jewish");
-					activityFacility.createAndAddActivityOption("religion_arab");
-					((TazFacilities) facilities.getAttributes().getAttribute(taz)).addToList(facilityId,
-							"religion_arab");
-				}
+
 							
 			} else
 			{
