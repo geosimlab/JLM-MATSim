@@ -48,7 +48,7 @@ public class TransitScheduleGenerator {
 //  TODO add code comments
 	private static final Logger log = Logger.getLogger(TransitScheduleGenerator.class);
 	private final static Properties props = DbUtils.readProperties("database.properties");
-	public final static String TRANSIT_ID = "7";
+	public final static String TRANSIT_ID = "8";
 
 	/**
 	 * reading stops from sql table
@@ -164,9 +164,9 @@ public class TransitScheduleGenerator {
 			int total_cap = resultSet.getInt("captotal");
 			int standing = total_cap - seats;
 			double pcu = resultSet.getDouble("auto_equ");
-//			TODO we should check this again
-			double accessTime = resultSet.getDouble("board_coef");
-			double egressTime = resultSet.getDouble("disembark_coef");
+//			TODO we should check this again. checked again, the values are in minutes, times 60 to multiply
+			double accessTime = resultSet.getDouble("board_coef") * 60;
+			double egressTime = resultSet.getDouble("disembark_coef") * 60;
 			cap.setSeats((int) Math.round(seats*k));
 			cap.setStandingRoom((int) Math.round(standing*k));
 //			setting other parameters
@@ -254,7 +254,7 @@ public class TransitScheduleGenerator {
 //		adding lines
 		transitResult = createTransitLines(transitSchedule);
 //		creating vehicle types
-		Vehicles vehiclesResult = createVehicleTypes(0.3,false);
+		Vehicles vehiclesResult = createVehicleTypes(0.3,true);
 //		creating vehicles and departure schedule
 		ArrayList<Object> temp = createVehiclesAndDepartures(transitResult, vehiclesResult);
 		transitResult = (TransitSchedule) temp.get(0);
