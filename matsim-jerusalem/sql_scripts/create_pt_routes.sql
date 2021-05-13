@@ -46,16 +46,19 @@ select
 		when transport_mode = 'l' then distance / 7.7
 		when transport_mode = 'r' then distance / 10
 		when transport_mode = 'b' then distance / 5.5
+		when transport_mode = 'm' then distance / 12
 	end as passing_time,
 	case
 		when transport_mode = 'l' then 20
 		when transport_mode = 'r' then 45
 		when transport_mode = 'b' then 15
+		when transport_mode = 'm' then 20
 	end as stalling_time,
 	case
 		when transport_mode = 'l' then 'light rail'
 		when transport_mode = 'r' then 'train'
 		when transport_mode = 'b' then 'bus'
+		when transport_mode = 'm' then 'metro'
 	end as transport_mode_string
 from
 	final_t

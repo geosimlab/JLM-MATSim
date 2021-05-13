@@ -45,7 +45,7 @@ import jerusalem.scenario.db.DbUtils;
 public class CreateNetwork {
 	// Logger
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
-	private final static Properties props = DbUtils.readProperties("database.properties");
+	private final static Properties props = DbUtils.readProperties("database2040.properties");
 //	All link have minimum 500 capacity in MATSim. common practice, asked kai nagel. 
 	private final static int MIN_FLOW_CAPACITY = 500;
 	public final static String NETWORK_ID = "15";

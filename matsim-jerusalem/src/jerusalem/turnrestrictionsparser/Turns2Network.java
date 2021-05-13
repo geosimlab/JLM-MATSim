@@ -920,7 +920,7 @@ public class Turns2Network {
 	}
 	
 	public static void main(String[] args) {
-		Properties props = DbUtils.readProperties("database.properties");
+		Properties props = DbUtils.readProperties("database2040.properties");
 		String turnRestrictionsFilename = props.getProperty("turns.restrictions_path");
 		String nodesFilename = props.getProperty("network.nodes_path");
 		String linksFilename = props.getProperty("network.links_path");

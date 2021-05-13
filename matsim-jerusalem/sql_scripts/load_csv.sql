@@ -219,7 +219,7 @@ CREATE TABLE IF NOT EXISTS detailed_headway(
     mode varchar(1) NOT NULL,
     headway double precision NOT NULL,
     direction integer NOT null,
-    LineWoDirection varchar(7) NOT NULL,
+    LineWoDirection varchar(7),
     HeadwayDir1 double precision,
 	HeadwayDir2 double precision,
 	HeadwayDir3 double precision,

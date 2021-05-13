@@ -25,7 +25,7 @@ import jerusalem.turnrestrictionsparser.Turns2Network;
  */
 public class DbInitialize {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
-	public static Properties props = DbUtils.readProperties("database.properties");
+	public static Properties props = DbUtils.readProperties("database2040.properties");
 	public final static String username = props.getProperty("db.username");
 	public final static String password = props.getProperty("db.password");
 	public final static String port = props.getProperty("db.port");
@@ -34,7 +34,7 @@ public class DbInitialize {
 	public final static String url = "jdbc:postgresql://" + db_url + ":" + port + "/" + db_name + "?loggerLevel=DEBUG";
 
 	public static void main(String[] args) throws SQLException, FileNotFoundException, IOException {
-		Properties props = DbUtils.readProperties("database.properties");
+		Properties props = DbUtils.readProperties("database2040.properties");
 		String own_path = System.getProperty("user.dir").replace("\\", "/");
 		String ogr2ogr_path = props.getProperty("folder.ogr2ogr_path");
 		DriverManager.setLogWriter(new PrintWriter(System.out));

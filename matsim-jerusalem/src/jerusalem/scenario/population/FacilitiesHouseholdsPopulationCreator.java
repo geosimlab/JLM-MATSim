@@ -66,7 +66,7 @@ import jerusalem.scenario.network.CreateNetwork;
 public class FacilitiesHouseholdsPopulationCreator
 {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
-	private static final Properties props = DbUtils.readProperties("database.properties");
+	private static final Properties props = DbUtils.readProperties("database2040.properties");
 	private final static String HOUSEHOLDS_ID = "" + 5;
 	private final static String FACILITIES_ID = "" + 7;
 	private final static String POPULATION_ID = "" + 11;

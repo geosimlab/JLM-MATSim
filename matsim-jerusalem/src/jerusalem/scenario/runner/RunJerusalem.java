@@ -31,7 +31,7 @@ public class RunJerusalem {
 //	TODO clean code comments
 //	check if this works after we finish everything
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
-	final public static Properties props = DbUtils.readProperties("database.properties");
+	final public static Properties props = DbUtils.readProperties("database2040.properties");
 	final public static String OUTPUT_FOLDER = props.getProperty("folder.output_folder");
 	final public static String RUN_ID = "" + 1;
 

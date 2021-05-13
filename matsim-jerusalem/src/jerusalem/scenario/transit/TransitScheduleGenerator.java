@@ -47,7 +47,7 @@ public class TransitScheduleGenerator {
 //	TODO complete javadoc
 //  TODO add code comments
 	private static final Logger log = Logger.getLogger(TransitScheduleGenerator.class);
-	private final static Properties props = DbUtils.readProperties("database.properties");
+	private final static Properties props = DbUtils.readProperties("database2040.properties");
 	public final static String TRANSIT_ID = "8";
 
 	/**

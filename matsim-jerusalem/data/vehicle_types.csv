@@ -11,3 +11,4 @@ vehicle_code,name,TAU_name,auto_equ,CapSitting,CapTotal,vehicle_type,board_coef,
 10,Urabn64LP,lrt_2_cars,4,200,450,2-car Citadis LRT  (Level platform),0.016,0.012
 11,Inter99LPE,rail_diesel,10,500,700,Deisel (Level platform),0.016,0.012
 12,Inter99LPD,rail_electric,10,500,700,Electric (Level platform),0.016,0.012
+13,Metro,metro,6,400,800,metro,0.016,0.012
