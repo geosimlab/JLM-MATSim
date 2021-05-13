@@ -336,7 +336,7 @@ public class CreateNetwork {
 		multiModalNetClean.run(setModeCar);
 		multiModalNetClean.run(setModeTrain);
 		multiModalNetClean.run(setModeWalk);
-		multiModalNetClean.run(setModeLrt);
+//		multiModalNetClean.run(setModeLrt);
 		multiModalNetClean.run(setModeBus);
 		multiModalNetClean.run(setModePT);
 
