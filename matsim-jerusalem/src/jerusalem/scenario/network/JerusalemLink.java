@@ -103,7 +103,8 @@ public class JerusalemLink {
 	public static Set<String> parseMode(String mode) {
 
 		Set modeSet = new HashSet<>();
-		if (mode.equals("[Mode(b), Mode(w)]")) {
+		if (mode.equals("[Mode(b), Mode(w)]")||
+				mode.equals("[Mode(w), Mode(b)]")) {
 			modeSet.add("pt");
 			modeSet.add("bus");
 			modeSet.add("walk");
@@ -112,7 +113,8 @@ public class JerusalemLink {
 			modeSet.add("pt");
 			modeSet.add("bus");
 		}
-		if (mode.equals("[Mode(c), Mode(b), Mode(w)]")) {
+		if (mode.equals("[Mode(c), Mode(b), Mode(w)]") || 
+				mode.equals("[Mode(c), Mode(w), Mode(b)]")) {
 			modeSet.add("pt");
 			modeSet.add("bus");
 			modeSet.add("car");
