@@ -21,8 +21,8 @@ public class FilterStops
 	public static void main(String[] args) {
 		Config config = ConfigUtils.createConfig();
 //		config.plans().setInputFile(path);
-		config.transit().setTransitScheduleFile("D:/matsim_jlm/output/7.transitschedule.xml.gz");
-		config.network().setInputFile("D:/matsim_jlm/output/13.network.xml.gz");
+		config.transit().setTransitScheduleFile("D:/matsim_jlm/output/10.transitschedule.xml.gz");
+		config.network().setInputFile("D:/matsim_jlm/output/17.network.xml.gz");
 		config.global().setCoordinateSystem("EPSG:2039");
 		Scenario sc =  ScenarioUtils.loadScenario(config);
 		Map<Id<TransitStopFacility>, TransitStopFacility> stopFacilities = sc.getTransitSchedule().getFacilities();
@@ -37,7 +37,7 @@ public class FilterStops
 				ts.addStopFacility(stop);
 			}
 		}
-		new TransitScheduleWriter(ts).writeFile("D:/matsim_jlm/output/1.stopsonly.xml.gz");
+		new TransitScheduleWriter(ts).writeFile("D:/matsim_jlm/output/2.stopsonly.xml.gz");
 	}
 	
 }
