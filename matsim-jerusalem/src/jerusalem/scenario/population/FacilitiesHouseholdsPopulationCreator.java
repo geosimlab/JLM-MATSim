@@ -67,9 +67,9 @@ public class FacilitiesHouseholdsPopulationCreator
 {
 	private static final Logger log = Logger.getLogger(CreateNetwork.class);
 	private static final Properties props = DbUtils.readProperties("database2040.properties");
-	private final static String HOUSEHOLDS_ID = "" + 6;
-	private final static String FACILITIES_ID = "" + 8;
-	private final static String POPULATION_ID = "" + 12;
+	private final static String HOUSEHOLDS_ID = "" + 7;
+	private final static String FACILITIES_ID = "" + 9;
+	private final static String POPULATION_ID = "" + 13;
 	public final static String POPULATION_OUTPUT_PATH = props.getProperty("folder.output_folder") + POPULATION_ID
 			+ ".population.xml.gz";
 	public final static String HOUSEHOLDS_OUTPUT_PATH = props.getProperty("folder.output_folder") + HOUSEHOLDS_ID
